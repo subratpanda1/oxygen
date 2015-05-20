@@ -66,6 +66,10 @@ public class MathUtils {
         a.y += b.y;
     }
 
+    public static PointF scalePoint(PointF a, float scale) {
+        return new PointF(a.x * scale, a.y * scale);
+    }
+
     public static PointF addPoint(PointF a, PointF b) {
         return new PointF(a.x + b.x, a.y + b.y);
     }
@@ -93,5 +97,9 @@ public class MathUtils {
         DisplayMetrics displayMetrics = resources.getDisplayMetrics();
         float px = dp * (displayMetrics.density);
         return px;
+    }
+
+    public static PointF clonePoint(PointF point) {
+        return new PointF(point.x, point.y);
     }
 }

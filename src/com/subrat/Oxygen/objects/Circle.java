@@ -13,6 +13,7 @@ import com.subrat.Oxygen.utilities.MathUtils;
 public class Circle extends Object {
     private PointF center;
     public PointF getCenter() { return center; }
+    public void setCenter(PointF point) { center = point; }
 
     private float radius;
     public float getRadius() { return radius; }
@@ -37,8 +38,10 @@ public class Circle extends Object {
 
     public void initVelocity() {
         velocity = new PointF();
-        velocity.x = MathUtils.getRandom(-Configuration.getMaxVelocity(), Configuration.getMaxVelocity());
-        velocity.y = (float) (Math.sqrt(Math.pow(Configuration.getMaxVelocity(), 2) - Math.pow(velocity.x, 2)) * MathUtils.getRandomSign());
+        // velocity.x = MathUtils.getRandom(-Configuration.getMaxVelocity(), Configuration.getMaxVelocity());
+        // velocity.y = (float) (Math.sqrt(Math.pow(Configuration.getMaxVelocity(), 2) - Math.pow(velocity.x, 2)) * MathUtils.getRandomSign());
+        velocity.x = 0;
+        velocity.y = 0;
     }
 
     private boolean isStill() {
@@ -49,7 +52,6 @@ public class Circle extends Object {
     protected Paint getFillPainter() {
         if (fillPainter == null) {
             fillPainter = new Paint();
-            // fillPainter.setColor(Color.RED);
             fillPainter.setColor(Color.parseColor(MathUtils.getRandomColor()));
             fillPainter.setAntiAlias(true);
             fillPainter.setStyle(Paint.Style.FILL);
@@ -60,7 +62,6 @@ public class Circle extends Object {
     protected Paint getStrokePainter() {
         if (strokePainter == null) {
             strokePainter = new Paint();
-            // strokePainter.setColor(Color.GREEN);
             strokePainter.setColor(Color.parseColor(MathUtils.getRandomColor()));
             strokePainter.setAntiAlias(true);
             strokePainter.setStyle(Paint.Style.STROKE);
@@ -82,10 +83,33 @@ public class Circle extends Object {
     }
 
     public void updatePosition() {
+
         PointF acceleration = new PointF(0, 0);
         MathUtils.addToPoint(acceleration, getGravity());
-        MathUtils.addToPoint(velocity, acceleration);
-        MathUtils.addToPoint(center, velocity);
+        MathUtils.addToPoint(velocity, MathUtils.scalePoint(acceleration, Configuration.getRefreshInterval()));
+
+        // PointF currentPos = MathUtils.clonePoint(getCenter());
+        MathUtils.addToPoint(center, MathUtils.scalePoint(velocity, Configuration.getRefreshInterval()));
+
+        /*
+        // Check if it collides with anyone in the new position. If so, don't move to new position.
+        try {
+            for (Object object : Object.getObjectList()) {
+                // System.out.println("Checking collision of " + getObjectId() + " with " + object.getObjectId());
+                // System.out.println("Center: x: " + center.x + ", y: " + center.y);
+                // System.out.println("Velocity: x: " + velocity.x + ", y: " + velocity.y);
+                if (checkCollision(object)) {
+                    // System.out.println("Found true");
+                    center = currentPos;
+                    break;
+                } else {
+                    System.out.println("Found false");
+                }
+            }
+        } catch (Exception e) {
+
+        }
+        */
 
         // Stop the object if it is very slow
         if (Math.abs(velocity.x) < Configuration.getMinVelocity() && Math.abs(velocity.y) < Configuration.getMinVelocity()) {
@@ -96,6 +120,7 @@ public class Circle extends Object {
     }
 
     public boolean checkOverlap(Object object) {
+        if (this.objectId == object.objectId) return false;
         if (object instanceof Circle) {
             Circle circle = (Circle) object;
             float threshold = MathUtils.getDistance(circle, this) - (circle.radius + this.radius);
@@ -117,11 +142,10 @@ public class Circle extends Object {
             Circle circle = (Circle) object;
             if (this.isStill() && circle.isStill()) return false;
             float threshold = MathUtils.getDistance(circle, this) - (circle.radius + this.radius);
-
             if (threshold < Configuration.getCollisionThreshold()) {
                 // Check if circles get closer in next frame
-                PointF newThisCenter = new PointF(this.center.x + this.velocity.x, this.center.y + this.velocity.y);
-                PointF newObjectCenter = new PointF(circle.center.x + circle.velocity.x, circle.center.y + circle.velocity.y);
+                PointF newThisCenter = MathUtils.addPoint(this.center, this.velocity);
+                PointF newObjectCenter = MathUtils.addPoint(circle.center, circle.velocity);
                 float newThreshold = MathUtils.getDistance(newObjectCenter, newThisCenter) - (circle.radius + this.radius);
                 if (newThreshold < threshold) {
                     return true;
@@ -133,9 +157,9 @@ public class Circle extends Object {
             float threshold = MathUtils.getDistance(this, line) - this.radius;
             if (threshold < Configuration.getCollisionThreshold()) {
                 // Check if circles get closer in next frame
-                PointF newThisCenter = new PointF(this.center.x + this.velocity.x, this.center.y + this.velocity.y);
+                PointF newThisCenter = MathUtils.addPoint(this.center, this.velocity);
                 float newThreshold = MathUtils.getDistance(newThisCenter, line) - this.radius;
-                if (newThreshold < Configuration.getCollisionThreshold()) {
+                if (newThreshold < threshold) {
                     return true;
                 }
             }
@@ -148,6 +172,7 @@ public class Circle extends Object {
 
     public void updateCollision(Object object) throws Exception {
         if (this.objectId == object.objectId) return;
+        System.out.println("Before Velocity: x: " + velocity.x + ", y: " + velocity.y);
         if (object instanceof Circle) {
             Circle circle = (Circle) object;
             updateCircleToCircleCollisionVelocity(circle);
@@ -216,6 +241,25 @@ public class Circle extends Object {
                 // Infinite slope
             }
         }
+
+        // resolveOverlap(b);
+    }
+
+    public void resolveOverlap(Circle b) {
+        if (!checkOverlap(b)) return;
+
+        float distance = MathUtils.getDistance(this, b);
+        float overlap = distance - (this.radius + b.radius);
+        float shift = overlap / 2;
+
+        float sinTheta = (b.getCenter().y - this.getCenter().y) / distance;
+        float cosTheta = (b.getCenter().x - this.getCenter().x) / distance;
+
+        this.getCenter().x -= shift * cosTheta;
+        this.getCenter().y -= shift * sinTheta;
+
+        b.getCenter().x += shift * cosTheta;
+        b.getCenter().y += shift * sinTheta;
     }
 
     public void updateCircleToLineCollisionVelocity(Line line) {

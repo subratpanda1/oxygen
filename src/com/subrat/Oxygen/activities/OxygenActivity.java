@@ -31,7 +31,6 @@ public class OxygenActivity extends Activity {
     private ShakeDetector mShakeDetector;
 
     // Repeat Task
-    private int mInterval = Configuration.getRefreshInterval(); // 200 ms by default, can be changed later
     private Handler mHandler;
     Runnable redrawObjects;
 
@@ -73,7 +72,7 @@ public class OxygenActivity extends Activity {
                     updateAllObjectsInThread();
 
                 }
-                mHandler.postDelayed(redrawObjects, mInterval);
+                mHandler.postDelayed(redrawObjects, Configuration.getRefreshInterval());
             }
         };
     }
@@ -110,14 +109,15 @@ public class OxygenActivity extends Activity {
     }
 
     private void updateSensorReading() {
-        TextView textView = (TextView) findViewById(R.id.sensorValue);
         float[] accelValues = mShakeDetector.accelValues;
+        Object.setGravity(new PointF(-accelValues[0] * Configuration.getGravityScale(), accelValues[1] * Configuration.getGravityScale()));
+        /*
         float[] magnetValues = mShakeDetector.magnetValues;
+        TextView textView = (TextView) findViewById(R.id.sensorValue);
         String accelText = "Accel: " + accelValues[0] + ", " + accelValues[1] + ", " + accelValues[2];
         String magnetText = "Magnet: " + magnetValues[0] + ", " + magnetValues[1] + ", " + magnetValues[2];
         textView.setText(accelText + " " + magnetText);
-        Object.setGravity(new PointF(-accelValues[0] * Configuration.getGravityScale(), accelValues[1] * Configuration.getGravityScale()));
-        // Object.setGravity(new PointF(0, 9.8F * Configuration.getGravityScale()));
+        */
     }
 
     @Override
