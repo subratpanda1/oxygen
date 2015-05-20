@@ -20,30 +20,36 @@ public class ObjectBuilder {
     }
 
     public static Object buildObject(ArrayList<PointF> points) {
-        float avgx = 0, avgy = 0;
-        for (PointF point : points) {
-            avgx += point.x;
-            avgy += point.y;
-        }
-
-        avgx /= points.size();
-        avgy /= points.size();
-
-        PointF center = new PointF(avgx, avgy);
-        float radius = Configuration.getCircleRadius();
-
-        Circle circle = new Circle(center, radius);
-
-        // Donot create if overlapping with other circles
-        for (Object object : Object.getObjectList()) {
-            if (circle.checkOverlap(object)) {
-                return null;
+        if (Line.detectLine(points)) {
+            Line line = new Line(points.get(0), points.get(points.size() - 1));
+            Object.getObjectList().add(line);
+            return line;
+        } else {
+            float avgx = 0, avgy = 0;
+            for (PointF point : points) {
+                avgx += point.x;
+                avgy += point.y;
             }
-        }
 
-        Object.getObjectList().add(circle);
-        circle.objectId = ++objectIdCounter;
-        return circle;
+            avgx /= points.size();
+            avgy /= points.size();
+
+            PointF center = new PointF(avgx, avgy);
+            float radius = Configuration.getCircleRadius();
+
+            Circle circle = new Circle(center, radius);
+
+            // Do not create if overlapping with other circles
+            for (Object object : Object.getObjectList()) {
+                if (circle.checkOverlap(object)) {
+                    return null;
+                }
+            }
+
+            Object.getObjectList().add(circle);
+            circle.objectId = ++objectIdCounter;
+            return circle;
+        }
     }
 
     public static void createOrUpdateBoundaryLines(float width, float height) {
@@ -61,13 +67,13 @@ public class ObjectBuilder {
             buildLine(bottomLeft, bottomRight);
             buildLine(topLeft, bottomLeft);
             buildLine(topRight, bottomRight);
-            buildLine(topLeftMid, bottomRightMid);
+            // buildLine(topLeftMid, bottomRightMid);
         } else {
             ((Line) Object.getObjectList().get(0)).setEndPoints(topLeft, topRight);
             ((Line) Object.getObjectList().get(1)).setEndPoints(bottomLeft, bottomRight);
             ((Line) Object.getObjectList().get(2)).setEndPoints(topLeft, bottomLeft);
             ((Line) Object.getObjectList().get(3)).setEndPoints(topRight, bottomRight);
-            ((Line) Object.getObjectList().get(4)).setEndPoints(topLeftMid, bottomRightMid);
+            // ((Line) Object.getObjectList().get(4)).setEndPoints(topLeftMid, bottomRightMid);
         }
     }
 }

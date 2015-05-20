@@ -20,11 +20,7 @@ public class OxygenActivity extends Activity {
     Runnable runnable;
     OxygenView oxygenView;
 
-    private static boolean haltSimulation = false;
-    public static void setHaltSimulation(boolean val) { haltSimulation = val; }
-    public static boolean getHaltSimulation() { return haltSimulation; }
-
-    UpdateObjectsInAThread updateObjectsInAThread;
+    static UpdateObjectsInAThread updateObjectsInAThread = null;
     Handler threadHandler;
 
     @Override
@@ -40,7 +36,17 @@ public class OxygenActivity extends Activity {
             }
         };
 
-        updateObjectsInAThread = new UpdateObjectsInAThread(this, threadHandler);
+        if (updateObjectsInAThread == null) {
+            updateObjectsInAThread = new UpdateObjectsInAThread(this, threadHandler);
+        }
+        startSimulation();
+    }
+
+    public static void stopSimulation() {
+        updateObjectsInAThread.stopThread();
+    }
+
+    public static void startSimulation() {
         updateObjectsInAThread.startThread();
     }
 
@@ -54,7 +60,7 @@ public class OxygenActivity extends Activity {
     @Override
     public void onPause() {
         super.onPause();
-        updateObjectsInAThread.stopThread();
+        stopSimulation();
     }
 
     @Override
@@ -72,7 +78,7 @@ public class OxygenActivity extends Activity {
             public void run() {
                 if (alertSecondsCounter == 0) {
                     alertDialog.cancel();
-                    updateObjectsInAThread.startThread();
+                    startSimulation();
                 } else {
                     alertDialog.setMessage("Resuming simulation in " + alertSecondsCounter-- + " seconds");
                     handler.postDelayed(runnable, 1000);

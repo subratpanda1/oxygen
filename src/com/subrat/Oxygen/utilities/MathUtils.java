@@ -6,6 +6,7 @@ import android.graphics.PointF;
 import com.subrat.Oxygen.objects.Circle;
 import com.subrat.Oxygen.objects.Line;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -57,11 +58,13 @@ public class MathUtils {
 
     public static float getSinTheta(PointF a, PointF b) {
         float distance = getDistance(a, b);
+        if (distance == 0) return 0;
         return (b.y - a.y) / distance;
     }
 
     public static float getCosTheta(PointF a, PointF b) {
         float distance = getDistance(a, b);
+        if (distance == 0) return 1;
         return (b.x - a.x) / distance;
     }
 
@@ -139,5 +142,29 @@ public class MathUtils {
         float tmpYY = tmpY * cosTheta + tmpX * sinTheta;
 
         return new PointF(tmpXX, tmpYY);
+    }
+
+    public static float getMean(ArrayList<Float> dataList) {
+        if (dataList.isEmpty()) return 0;
+        float sum = 0;
+        for (float data : dataList) {
+            sum += data;
+        }
+
+        return sum / dataList.size();
+    }
+
+    public static float getStandardDeviation(ArrayList<Float> dataList, float mean) {
+        if (dataList.isEmpty()) return 0;
+        float sum = 0;
+        for (float data : dataList) {
+            sum += Math.pow(data - mean, 2);
+        }
+
+        return (float)Math.sqrt(sum / dataList.size());
+    }
+
+    public static float getStandardDeviation(ArrayList<Float> dataList) {
+        return getStandardDeviation(dataList, getMean(dataList));
     }
 }

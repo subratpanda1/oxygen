@@ -3,6 +3,7 @@ package com.subrat.Oxygen.customviews;
 import android.content.Context;
 import android.graphics.*;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import com.subrat.Oxygen.activities.OxygenActivity;
@@ -78,15 +79,19 @@ public class OxygenView extends View implements View.OnTouchListener {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 drawingMode = true;
-                OxygenActivity.setHaltSimulation(true);
+                OxygenActivity.stopSimulation();
+                Log.d("MyApp", "ACTION_DOWN");
                 break;
             case MotionEvent.ACTION_MOVE:
+                Log.d("MyApp", "ACTION_MOVE");
                 break;
             case MotionEvent.ACTION_UP:
                 ObjectBuilder.buildObject(points);
                 points.clear();
                 drawingMode = false;
-                OxygenActivity.setHaltSimulation(false);
+                OxygenActivity.startSimulation();
+                Log.d("MyApp", "ACTION_UP");
+                break;
             default:
                 return false;
         }

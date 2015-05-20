@@ -68,21 +68,23 @@ public class UpdateObjectsInAThread {
     }
 
     public void startThread() {
-        thread = new Thread(new Runnable() {
-            public void run() {
-                startThreadEventLoop();
-            }
-        });
-        thread.start();
-
         mSensorManager.registerListener(mShakeDetector, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
         threadInstruction.set(ThreadInstruction.THREAD_CONTINUE.getValue());
+
+        if (thread == null) {
+            thread = new Thread(new Runnable() {
+                public void run() {
+                    startThreadEventLoop();
+                }
+            });
+        }
+        thread.start();
     }
 
     public void stopThread() {
-        mSensorManager.unregisterListener(mShakeDetector);
         threadInstruction.set(ThreadInstruction.THREAD_STOP.getValue());
         mSensorManager.unregisterListener(mShakeDetector);
+        thread = null;
     }
 
     private void updateSensorReading() {

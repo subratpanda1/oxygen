@@ -14,6 +14,7 @@ public class Configuration {
     private final static float LINE_THICKNESS = 3F; // In dp
     private final static float CIRCLE_DENSITY = 1F;
     private final static float RESTITUTION = 0.9F;
+    private final static float LINE_DEVIATION_THRESHOLD = 0.1F;
     private final static float CANVAS_MARGIN = 10F; // In dp
 
     private final static float GRAVITY_SCALE = 0.0002F; // Convert mtr per sec per sec to dp per msec per msec
@@ -60,5 +61,9 @@ public class Configuration {
 
     public static float getGravityScale() {
         return MathUtils.getPixelFromDP(GRAVITY_SCALE);
+    }
+
+    public static float getLineDeviationThreshold() {
+        return LINE_DEVIATION_THRESHOLD;
     }
 }
