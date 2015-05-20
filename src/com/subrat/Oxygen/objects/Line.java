@@ -56,7 +56,6 @@ public class Line extends Object {
         }
 
         float standardDeviation = MathUtils.getStandardDeviation(slopeList);
-        Log.d("MyApp", "Standard deviation: " + standardDeviation + ", points: " + points.size());
 
         if (standardDeviation < Configuration.getLineDeviationThreshold()) return true;
 

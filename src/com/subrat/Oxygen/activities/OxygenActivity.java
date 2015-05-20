@@ -20,7 +20,7 @@ public class OxygenActivity extends Activity {
     Runnable runnable;
     OxygenView oxygenView;
 
-    static UpdateObjectsInAThread updateObjectsInAThread = null;
+    UpdateObjectsInAThread updateObjectsInAThread = null;
     Handler threadHandler;
 
     @Override
@@ -28,6 +28,7 @@ public class OxygenActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.oxygen);
         oxygenView = (OxygenView) findViewById(R.id.view);
+        oxygenView.oxygenActivity = this;
 
         threadHandler = new Handler() {
             @Override
@@ -42,11 +43,11 @@ public class OxygenActivity extends Activity {
         startSimulation();
     }
 
-    public static void stopSimulation() {
+    public void stopSimulation() {
         updateObjectsInAThread.stopThread();
     }
 
-    public static void startSimulation() {
+    public void startSimulation() {
         updateObjectsInAThread.startThread();
     }
 

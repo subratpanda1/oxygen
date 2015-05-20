@@ -41,26 +41,35 @@ public class UpdateObjectsInAThread {
     private Handler threadHandler;
     private Thread thread = null;
 
+    // Repeat Task
+    private Handler repeatHandler;
+    Runnable repeatRunnable;
+    boolean repeatTaskRunning;
+
     private Context context;
 
     public UpdateObjectsInAThread(Context context, Handler threadHandler) {
         this.context = context;
         this.threadHandler = threadHandler;
+        repeatTaskRunning = false;
         initializeShake();
+        initializeRepeatingTask();
     }
 
     private void startThreadEventLoop() {
         while (true) {
             if (threadInstruction.get() == ThreadInstruction.THREAD_STOP.getValue()) {
+                stopRepeatingTask();
                 break;
             } else if (threadInstruction.get() == ThreadInstruction.THREAD_CONTINUE.getValue()) {
-                updateSensorReading();
-                Object.updateAllObjects();
-                threadHandler.sendMessage(threadHandler.obtainMessage());
+                startRepeatingTask();
+                // updateSensorReading();
+                // Object.updateAllObjects();
+                // threadHandler.sendMessage(threadHandler.obtainMessage());
             }
 
             try {
-                thread.sleep(Configuration.getRefreshInterval());
+                thread.sleep(1);
             } catch(InterruptedException ex) {
                 thread.interrupt();
             }
@@ -85,6 +94,31 @@ public class UpdateObjectsInAThread {
         threadInstruction.set(ThreadInstruction.THREAD_STOP.getValue());
         mSensorManager.unregisterListener(mShakeDetector);
         thread = null;
+    }
+
+    void initializeRepeatingTask() {
+        repeatHandler = new Handler();
+        repeatRunnable = new Runnable() {
+            @Override
+            public void run() {
+                updateSensorReading();
+                Object.updateAllObjects();
+                threadHandler.sendMessage(threadHandler.obtainMessage());
+                repeatHandler.postDelayed(repeatRunnable, Configuration.getRefreshInterval());
+            }
+        };
+    }
+
+    public void startRepeatingTask() {
+        if (repeatTaskRunning) return;
+        repeatRunnable.run();
+        repeatTaskRunning = true;
+    }
+
+    public void stopRepeatingTask() {
+        if (!repeatTaskRunning) return;
+        repeatHandler.removeCallbacks(repeatRunnable);
+        repeatTaskRunning = false;
     }
 
     private void updateSensorReading() {
