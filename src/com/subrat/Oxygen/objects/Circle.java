@@ -104,7 +104,7 @@ public class Circle extends Object {
         if (this.objectId == object.objectId) return false;
         if (object instanceof Circle) {
             Circle circle = (Circle) object;
-            float threshold = MathUtils.getDistance(circle, this) - (circle.radius + this.radius);
+            float threshold = MathUtils.getDistance(circle.getCenter(), this.getCenter()) - (circle.radius + this.radius);
             if (threshold < Configuration.getCollisionThreshold()) return true;
         } else if (object instanceof Line) {
             Line line = (Line) object;
@@ -122,11 +122,13 @@ public class Circle extends Object {
         if (object instanceof Circle) {
             Circle circle = (Circle) object;
             if (this.isStill() && circle.isStill()) return false;
-            float threshold = MathUtils.getDistance(circle, this) - (circle.radius + this.radius);
+            float threshold = MathUtils.getDistance(circle.getCenter(), this.getCenter()) - (circle.radius + this.radius);
             if (threshold < Configuration.getCollisionThreshold()) {
                 // Check if circles get closer in next frame
-                PointF newThisCenter = MathUtils.addPoint(this.center, this.velocity);
-                PointF newObjectCenter = MathUtils.addPoint(circle.center, circle.velocity);
+                PointF thisPositionChange = MathUtils.scalePoint(this.getVelocity(), Configuration.getRefreshInterval());
+                PointF objectPositionChange = MathUtils.scalePoint(circle.getVelocity(), Configuration.getRefreshInterval());
+                PointF newThisCenter = MathUtils.addPoint(this.center, thisPositionChange);
+                PointF newObjectCenter = MathUtils.addPoint(circle.center, objectPositionChange);
                 float newThreshold = MathUtils.getDistance(newObjectCenter, newThisCenter) - (circle.radius + this.radius);
                 if (newThreshold < threshold) {
                     return true;
@@ -135,13 +137,39 @@ public class Circle extends Object {
         } else if (object instanceof Line) {
             if (this.isStill()) return false;
             Line line = (Line) object;
-            float threshold = MathUtils.getDistance(this, line) - this.radius;
-            if (threshold < Configuration.getCollisionThreshold()) {
-                // Check if circles get closer in next frame
-                PointF newThisCenter = MathUtils.addPoint(this.center, this.velocity);
-                float newThreshold = MathUtils.getDistance(newThisCenter, line) - this.radius;
-                if (newThreshold < threshold) {
-                    return true;
+            PointF positionChange = MathUtils.scalePoint(this.getVelocity(), Configuration.getRefreshInterval());
+            PointF newThisCenter = MathUtils.addPoint(this.center, positionChange);
+
+            // Detect if circle is within bounding rectangle of the line
+            PointF transformedCenter = MathUtils.transformPointToAxis(this.getCenter(), line);
+            float lineLength = MathUtils.getDistance(line.getStart(), line.getEnd());
+            if (transformedCenter.x > 0 && transformedCenter.x < lineLength) {
+                float threshold = Math.abs(transformedCenter.y) - this.radius;
+                if (threshold < Configuration.getCollisionThreshold()) {
+                    // Check if circles get closer in next frame
+                    float newThreshold = MathUtils.getDistance(newThisCenter, line) - this.radius;
+                    if (newThreshold < threshold) {
+                        return true;
+                    }
+                }
+            } else {
+                // Detect if circle is going to hit the corner
+                float threshold = MathUtils.getDistance(this.getCenter(), line.getStart()) - this.radius;
+                if (threshold < Configuration.getCollisionThreshold()) {
+                    // Check if circles get closer in next frame
+                    float newThreshold = MathUtils.getDistance(newThisCenter, line.getStart()) - this.radius;
+                    if (newThreshold < threshold) {
+                        return true;
+                    }
+                }
+
+                threshold = MathUtils.getDistance(this.getCenter(), line.getEnd()) - this.radius;
+                if (threshold < Configuration.getCollisionThreshold()) {
+                    // Check if circles get closer in next frame
+                    float newThreshold = MathUtils.getDistance(newThisCenter, line.getEnd()) - this.radius;
+                    if (newThreshold < threshold) {
+                        return true;
+                    }
                 }
             }
         } else {
@@ -193,11 +221,10 @@ public class Circle extends Object {
             this.getVelocity().x = finalVelocity.x;
             b.getVelocity().x = finalVelocity.y;
         } else {
-            float slope = (-1) / MathUtils.getSlope(this.getCenter(), b.getCenter());
-            float sinTheta = (float) (slope / Math.sqrt(1 + Math.pow(slope, 2)));
-            float cosTheta = (float) (1 / Math.sqrt(1 + Math.pow(slope, 2)));
+            float sinTheta = MathUtils.getSinTheta(this.getCenter(), b.getCenter());
+            float cosTheta = MathUtils.getCosTheta(this.getCenter(), b.getCenter());
 
-            // Calculate projected velocities with the collision tangent as x axis
+            // Calculate projected velocities along the axes that go through centers of circles
             float projectedVelocityXOfA = this.getVelocity().x * cosTheta + this.getVelocity().y * sinTheta;
             float projectedVelocityYOfA = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
 
@@ -206,9 +233,9 @@ public class Circle extends Object {
 
             // Compute post-collision velocities
             PointF finalVelocity = computeOneDimensionalCollisionVelocities(new PointF(this.getMass(), b.getMass()),
-                    new PointF(projectedVelocityYOfA, projectedVelocityYOfB));
-            projectedVelocityYOfA = finalVelocity.x;
-            projectedVelocityYOfB = finalVelocity.y;
+                    new PointF(projectedVelocityXOfA, projectedVelocityXOfB));
+            projectedVelocityXOfA = finalVelocity.x;
+            projectedVelocityXOfB = finalVelocity.y;
 
             // Calculate back projected velocities to normal axis
             this.getVelocity().x = projectedVelocityXOfA * cosTheta - projectedVelocityYOfA * sinTheta;
@@ -217,49 +244,65 @@ public class Circle extends Object {
             b.getVelocity().x = projectedVelocityXOfB * cosTheta - projectedVelocityYOfB * sinTheta;
             b.getVelocity().y = projectedVelocityYOfB * cosTheta + projectedVelocityXOfB * sinTheta;
         }
-
-        // resolveOverlap(b);
-    }
-
-    public void resolveOverlap(Circle b) {
-        if (!checkOverlap(b)) return;
-
-        float distance = MathUtils.getDistance(this, b);
-        float overlap = distance - (this.radius + b.radius);
-        float shift = overlap / 2;
-
-        float sinTheta = (b.getCenter().y - this.getCenter().y) / distance;
-        float cosTheta = (b.getCenter().x - this.getCenter().x) / distance;
-
-        this.getCenter().x -= shift * cosTheta;
-        this.getCenter().y -= shift * sinTheta;
-
-        b.getCenter().x += shift * cosTheta;
-        b.getCenter().y += shift * sinTheta;
     }
 
     public void updateCircleToLineCollisionVelocity(Line line) {
-        if (line.getStart().x == line.getEnd().x) {
-            // Vertical Line
-            this.getVelocity().x = -1F * Configuration.getRestitution() * this.getVelocity().x;
-        } else if (line.getStart().y == line.getEnd().y) {
-            // Horizontal Line
-            this.getVelocity().y = -1F * Configuration.getRestitution() * this.getVelocity().y;
-        } else {
-            float slope = MathUtils.getSlope(line.getEnd(), line.getStart());
-            float sinTheta = (float) (slope / Math.sqrt(1 + Math.pow(slope, 2)));
-            float cosTheta = (float) (1 / Math.sqrt(1 + Math.pow(slope, 2)));
+        // Detect if circle is within bounding rectangle of the line
+        PointF transformedCenter = MathUtils.transformPointToAxis(this.getCenter(), line);
+        float lineLength = MathUtils.getDistance(line.getStart(), line.getEnd());
+        if (transformedCenter.x > 0 && transformedCenter.x < lineLength) {
+            float sinTheta = MathUtils.getSinTheta(line.getStart(), line.getEnd());
+            float cosTheta = MathUtils.getCosTheta(line.getStart(), line.getEnd());
 
             // Calculate projected velocities with the collision tangent as x axis
             float projectedVelocityX = this.getVelocity().x * cosTheta + this.getVelocity().y * sinTheta;
             float projectedVelocityY = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
 
-            // Compute post-collision velocities
+            // Compute post-collision velocities (Note that velocity along projected Y axis will be inverted)
             projectedVelocityY = -1F * Configuration.getRestitution() * projectedVelocityY;
 
             // Calculate back projected velocities to normal axis
             this.getVelocity().x = projectedVelocityX * cosTheta - projectedVelocityY * sinTheta;
             this.getVelocity().y = projectedVelocityY * cosTheta + projectedVelocityX * sinTheta;
+        } else {
+            // In this case, circle is colliding with the end point of line. Treat it as a collision with line
+            // orthogonal to line joining center of circle and end point of line.
+
+            // If circle is going to hit the starting corner
+            float threshold = MathUtils.getDistance(this.getCenter(), line.getStart()) - this.radius;
+            if (threshold < Configuration.getCollisionThreshold()) {
+                float sinTheta = MathUtils.getSinTheta(this.getCenter(), line.getStart());
+                float cosTheta = MathUtils.getCosTheta(this.getCenter(), line.getStart());
+
+                // Calculate projected velocities with the line joining circle center and endpoint as x axis
+                float projectedVelocityX = this.getVelocity().x * cosTheta + this.getVelocity().y * sinTheta;
+                float projectedVelocityY = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
+
+                // Compute post-collision velocities (Note that velocity along projected X axis will be inverted)
+                projectedVelocityX = -1F * Configuration.getRestitution() * projectedVelocityX;
+
+                // Calculate back projected velocities to normal axis
+                this.getVelocity().x = projectedVelocityX * cosTheta - projectedVelocityY * sinTheta;
+                this.getVelocity().y = projectedVelocityY * cosTheta + projectedVelocityX * sinTheta;
+            }
+
+            // If circle is going to hit the ending corner
+            threshold = MathUtils.getDistance(this.getCenter(), line.getEnd()) - this.radius;
+            if (threshold < Configuration.getCollisionThreshold()) {
+                float sinTheta = MathUtils.getSinTheta(this.getCenter(), line.getEnd());
+                float cosTheta = MathUtils.getCosTheta(this.getCenter(), line.getEnd());
+
+                // Calculate projected velocities with the line joining circle center and endpoint as x axis
+                float projectedVelocityX = this.getVelocity().x * cosTheta + this.getVelocity().y * sinTheta;
+                float projectedVelocityY = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
+
+                // Compute post-collision velocities (Note that velocity along projected X axis will be inverted)
+                projectedVelocityX = -1F * Configuration.getRestitution() * projectedVelocityX;
+
+                // Calculate back projected velocities to normal axis
+                this.getVelocity().x = projectedVelocityX * cosTheta - projectedVelocityY * sinTheta;
+                this.getVelocity().y = projectedVelocityY * cosTheta + projectedVelocityX * sinTheta;
+            }
         }
     }
 }

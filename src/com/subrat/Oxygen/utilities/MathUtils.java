@@ -34,10 +34,6 @@ public class MathUtils {
         return (float) Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
     }
 
-    public static float getDistance(Circle a, Circle b) {
-        return getDistance(a.getCenter(), b.getCenter());
-    }
-
     public static float getDistance(PointF a, Line b) {
         float term1 = (b.getEnd().x - b.getStart().x);
         float term2 = (b.getStart().x - a.x);
@@ -57,6 +53,16 @@ public class MathUtils {
     public static float getSlope(PointF a, PointF b) {
         if (a.x == b.x) { return (float) 0xFFFFFFFF; } // Infinite slope case
         return (a.y - b.y) / (a.x - b.x);
+    }
+
+    public static float getSinTheta(PointF a, PointF b) {
+        float distance = getDistance(a, b);
+        return (b.y - a.y) / distance;
+    }
+
+    public static float getCosTheta(PointF a, PointF b) {
+        float distance = getDistance(a, b);
+        return (b.x - a.x) / distance;
     }
 
     public static void addToPoint(PointF a, PointF b) {
@@ -99,5 +105,39 @@ public class MathUtils {
 
     public static PointF clonePoint(PointF point) {
         return new PointF(point.x, point.y);
+    }
+
+    public static PointF transformPointToAxis(PointF point, Line line) {
+        PointF start = line.getStart();
+        PointF end = line.getEnd();
+        float sinTheta = MathUtils.getSinTheta(start, end);
+        float cosTheta = MathUtils.getCosTheta(start, end);
+
+        // First do linear transform of axes from origin to start
+        float tmpX = point.x - start.x;
+        float tmpY = point.y - start.y;
+
+        // Now rotate axis to align x axis along the given line with origin being at start
+        float tmpXX = tmpX * cosTheta + tmpY * sinTheta;
+        float tmpYY = tmpY * cosTheta - tmpX * sinTheta;
+
+        return new PointF(tmpXX, tmpYY);
+    }
+
+    public static PointF transformPointFromAxis(PointF point, Line line) {
+        PointF start = line.getStart();
+        PointF end = line.getEnd();
+        float sinTheta = MathUtils.getSinTheta(start, end);
+        float cosTheta = MathUtils.getCosTheta(start, end);
+
+        // First do linear transform of axes from start to origin
+        float tmpX = point.x + start.x;
+        float tmpY = point.y + start.y;
+
+        // Now rotate axis back to global axis
+        float tmpXX = tmpX * cosTheta - tmpY * sinTheta;
+        float tmpYY = tmpY * cosTheta + tmpX * sinTheta;
+
+        return new PointF(tmpXX, tmpYY);
     }
 }
