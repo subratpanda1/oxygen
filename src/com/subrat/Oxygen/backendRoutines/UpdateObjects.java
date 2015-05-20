@@ -15,7 +15,6 @@ public class UpdateObjects extends AsyncTask<OxygenView, Void, Void> {
     protected Void doInBackground(OxygenView... params) {
         updateAllObjects();
         oxygenView = params[0];
-        System.out.println(oxygenView);
         return null;
     }
 

@@ -9,13 +9,14 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.widget.TextView;
 import com.subrat.Oxygen.R;
 import com.subrat.Oxygen.backendRoutines.ShakeDetector;
 import com.subrat.Oxygen.customviews.OxygenView;
 
+import com.subrat.Oxygen.objects.Circle;
 import com.subrat.Oxygen.objects.Object;
 import com.subrat.Oxygen.utilities.Configuration;
+import com.subrat.Oxygen.utilities.MathUtils;
 
 /**
  * Created by subrat.panda on 07/05/15.
@@ -109,8 +110,11 @@ public class OxygenActivity extends Activity {
     }
 
     private void updateSensorReading() {
-        float[] accelValues = mShakeDetector.accelValues;
-        Object.setGravity(new PointF(-accelValues[0] * Configuration.getGravityScale(), accelValues[1] * Configuration.getGravityScale()));
+        float[] accelValues = mShakeDetector.accelValues; // Got in mtr per sec per sec
+        float convertedAccelValuesX = MathUtils.getPixelFromDP(accelValues[0] * Configuration.getGravityScale());
+        float convertedAccelValuesY = MathUtils.getPixelFromDP(accelValues[1] * Configuration.getGravityScale());
+
+        Circle.setGravity(new PointF(-convertedAccelValuesX, convertedAccelValuesY));
         /*
         float[] magnetValues = mShakeDetector.magnetValues;
         TextView textView = (TextView) findViewById(R.id.sensorValue);

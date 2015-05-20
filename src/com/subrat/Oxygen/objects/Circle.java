@@ -26,6 +26,10 @@ public class Circle extends Object {
     public PointF getVelocity() { return velocity; }
     public void setVelocity(PointF point) { velocity = point; }
 
+    private static PointF gravity = new PointF(0, 0); // In pixels per msec per msec
+    public static PointF getGravity() { return gravity; }
+    public static void setGravity(PointF pointf) { gravity = pointf; }
+
     private Paint fillPainter = null;
     private Paint strokePainter = null;
 
@@ -83,39 +87,16 @@ public class Circle extends Object {
     }
 
     public void updatePosition() {
-
-        PointF acceleration = new PointF(0, 0);
-        MathUtils.addToPoint(acceleration, getGravity());
-        MathUtils.addToPoint(velocity, MathUtils.scalePoint(acceleration, Configuration.getRefreshInterval()));
-
-        // PointF currentPos = MathUtils.clonePoint(getCenter());
-        MathUtils.addToPoint(center, MathUtils.scalePoint(velocity, Configuration.getRefreshInterval()));
-
-        /*
-        // Check if it collides with anyone in the new position. If so, don't move to new position.
-        try {
-            for (Object object : Object.getObjectList()) {
-                // System.out.println("Checking collision of " + getObjectId() + " with " + object.getObjectId());
-                // System.out.println("Center: x: " + center.x + ", y: " + center.y);
-                // System.out.println("Velocity: x: " + velocity.x + ", y: " + velocity.y);
-                if (checkCollision(object)) {
-                    // System.out.println("Found true");
-                    center = currentPos;
-                    break;
-                } else {
-                    System.out.println("Found false");
-                }
-            }
-        } catch (Exception e) {
-
+        // Don't change velocity if acceleration is very low
+        PointF velocityChange = MathUtils.scalePoint(getGravity(), Configuration.getRefreshInterval());
+        if (Math.abs(velocityChange.x) > Configuration.getMinVelocity() || Math.abs(velocityChange.y) > Configuration.getMinVelocity()) {
+            MathUtils.addToPoint(velocity, velocityChange);
         }
-        */
 
-        // Stop the object if it is very slow
-        if (Math.abs(velocity.x) < Configuration.getMinVelocity() && Math.abs(velocity.y) < Configuration.getMinVelocity()) {
-            velocity.x = 0;
-            velocity.y = 0;
-            return;
+        // Don't change position if velocity is very low
+        PointF positionChange = MathUtils.scalePoint(getVelocity(), Configuration.getRefreshInterval());
+        if (Math.abs(positionChange.x) > Configuration.getMinVelocity() || Math.abs(positionChange.y) > Configuration.getMinVelocity()) {
+            MathUtils.addToPoint(center, positionChange);
         }
     }
 
@@ -172,7 +153,6 @@ public class Circle extends Object {
 
     public void updateCollision(Object object) throws Exception {
         if (this.objectId == object.objectId) return;
-        System.out.println("Before Velocity: x: " + velocity.x + ", y: " + velocity.y);
         if (object instanceof Circle) {
             Circle circle = (Circle) object;
             updateCircleToCircleCollisionVelocity(circle);
@@ -213,33 +193,29 @@ public class Circle extends Object {
             this.getVelocity().x = finalVelocity.x;
             b.getVelocity().x = finalVelocity.y;
         } else {
-            try {
-                float slope = (-1) / MathUtils.getSlope(this.getCenter(), b.getCenter());
-                float sinTheta = (float) (slope / Math.sqrt(1 + Math.pow(slope, 2)));
-                float cosTheta = (float) (1 / Math.sqrt(1 + Math.pow(slope, 2)));
+            float slope = (-1) / MathUtils.getSlope(this.getCenter(), b.getCenter());
+            float sinTheta = (float) (slope / Math.sqrt(1 + Math.pow(slope, 2)));
+            float cosTheta = (float) (1 / Math.sqrt(1 + Math.pow(slope, 2)));
 
-                // Calculate projected velocities with the collision tangent as x axis
-                float projectedVelocityXOfA = this.getVelocity().x * cosTheta + this.getVelocity().y * sinTheta;
-                float projectedVelocityYOfA = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
+            // Calculate projected velocities with the collision tangent as x axis
+            float projectedVelocityXOfA = this.getVelocity().x * cosTheta + this.getVelocity().y * sinTheta;
+            float projectedVelocityYOfA = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
 
-                float projectedVelocityXOfB = b.getVelocity().x * cosTheta + b.getVelocity().y * sinTheta;
-                float projectedVelocityYOfB = b.getVelocity().y * cosTheta - b.getVelocity().x * sinTheta;
+            float projectedVelocityXOfB = b.getVelocity().x * cosTheta + b.getVelocity().y * sinTheta;
+            float projectedVelocityYOfB = b.getVelocity().y * cosTheta - b.getVelocity().x * sinTheta;
 
-                // Compute post-collision velocities
-                PointF finalVelocity = computeOneDimensionalCollisionVelocities(new PointF(this.getMass(), b.getMass()),
-                        new PointF(projectedVelocityYOfA, projectedVelocityYOfB));
-                projectedVelocityYOfA = finalVelocity.x;
-                projectedVelocityYOfB = finalVelocity.y;
+            // Compute post-collision velocities
+            PointF finalVelocity = computeOneDimensionalCollisionVelocities(new PointF(this.getMass(), b.getMass()),
+                    new PointF(projectedVelocityYOfA, projectedVelocityYOfB));
+            projectedVelocityYOfA = finalVelocity.x;
+            projectedVelocityYOfB = finalVelocity.y;
 
-                // Calculate back projected velocities to normal axis
-                this.getVelocity().x = projectedVelocityXOfA * cosTheta - projectedVelocityYOfA * sinTheta;
-                this.getVelocity().y = projectedVelocityYOfA * cosTheta + projectedVelocityXOfA * sinTheta;
+            // Calculate back projected velocities to normal axis
+            this.getVelocity().x = projectedVelocityXOfA * cosTheta - projectedVelocityYOfA * sinTheta;
+            this.getVelocity().y = projectedVelocityYOfA * cosTheta + projectedVelocityXOfA * sinTheta;
 
-                b.getVelocity().x = projectedVelocityXOfB * cosTheta - projectedVelocityYOfB * sinTheta;
-                b.getVelocity().y = projectedVelocityYOfB * cosTheta + projectedVelocityXOfB * sinTheta;
-            } catch (Exception e) {
-                // Infinite slope
-            }
+            b.getVelocity().x = projectedVelocityXOfB * cosTheta - projectedVelocityYOfB * sinTheta;
+            b.getVelocity().y = projectedVelocityYOfB * cosTheta + projectedVelocityXOfB * sinTheta;
         }
 
         // resolveOverlap(b);
@@ -270,24 +246,20 @@ public class Circle extends Object {
             // Horizontal Line
             this.getVelocity().y = -1F * Configuration.getRestitution() * this.getVelocity().y;
         } else {
-            try {
-                float slope = MathUtils.getSlope(line.getEnd(), line.getStart());
-                float sinTheta = (float) (slope / Math.sqrt(1 + Math.pow(slope, 2)));
-                float cosTheta = (float) (1 / Math.sqrt(1 + Math.pow(slope, 2)));
+            float slope = MathUtils.getSlope(line.getEnd(), line.getStart());
+            float sinTheta = (float) (slope / Math.sqrt(1 + Math.pow(slope, 2)));
+            float cosTheta = (float) (1 / Math.sqrt(1 + Math.pow(slope, 2)));
 
-                // Calculate projected velocities with the collision tangent as x axis
-                float projectedVelocityX = this.getVelocity().x * cosTheta + this.getVelocity().y * sinTheta;
-                float projectedVelocityY = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
+            // Calculate projected velocities with the collision tangent as x axis
+            float projectedVelocityX = this.getVelocity().x * cosTheta + this.getVelocity().y * sinTheta;
+            float projectedVelocityY = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
 
-                // Compute post-collision velocities
-                projectedVelocityY = -1F * Configuration.getRestitution() * projectedVelocityY;
+            // Compute post-collision velocities
+            projectedVelocityY = -1F * Configuration.getRestitution() * projectedVelocityY;
 
-                // Calculate back projected velocities to normal axis
-                this.getVelocity().x = projectedVelocityX * cosTheta - projectedVelocityY * sinTheta;
-                this.getVelocity().y = projectedVelocityY * cosTheta + projectedVelocityX * sinTheta;
-            } catch (Exception e) {
-                // Infinite slope
-            }
+            // Calculate back projected velocities to normal axis
+            this.getVelocity().x = projectedVelocityX * cosTheta - projectedVelocityY * sinTheta;
+            this.getVelocity().y = projectedVelocityY * cosTheta + projectedVelocityX * sinTheta;
         }
     }
 }
