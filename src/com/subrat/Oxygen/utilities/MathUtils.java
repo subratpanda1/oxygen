@@ -54,16 +54,18 @@ public class MathUtils {
         return getDistance(a.getCenter(), b);
     }
 
-    public static float getSlope(PointF a, PointF b) throws Exception {
-        if (a.x == b.x) {
-            throw (new Exception("Infinite Slope"));
-        }
+    public static float getSlope(PointF a, PointF b) {
+        if (a.x == b.x) { return (float) 0xFFFFFFFF; } // Infinite slope case
         return (a.y - b.y) / (a.x - b.x);
     }
 
     public static void addToPoint(PointF a, PointF b) {
         a.x += b.x;
         a.y += b.y;
+    }
+
+    public static PointF scalePoint(PointF a, float scale) {
+        return new PointF(a.x * scale, a.y * scale);
     }
 
     public static PointF addPoint(PointF a, PointF b) {
@@ -88,10 +90,14 @@ public class MathUtils {
         return hexColor;
     }
 
-    public static float getPixelFromMM(float dp) {
+    public static float getPixelFromDP(float dp) {
         if (resources == null) return dp;
         DisplayMetrics displayMetrics = resources.getDisplayMetrics();
         float px = dp * (displayMetrics.density);
         return px;
+    }
+
+    public static PointF clonePoint(PointF point) {
+        return new PointF(point.x, point.y);
     }
 }

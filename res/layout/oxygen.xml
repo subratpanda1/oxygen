@@ -8,9 +8,36 @@
           android:layout_height="fill_parent"
           class="com.subrat.Oxygen.customviews.OxygenView" android:id="@+id/view" android:layout_gravity="center_horizontal"
           android:layout_weight="1"/>
-    <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="50dp"
-            android:text="0"
-            android:id="@+id/sensorValue" android:layout_gravity="center_horizontal"/>
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/ButtonLayout" android:layout_gravity="center_horizontal" android:layout_weight="1"
+            android:layout_marginLeft="@dimen/ButtonLayoutMargin"
+            android:layout_marginRight="@dimen/ButtonLayoutMargin">
+        <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Draw"
+                android:id="@+id/drawModeRadio" android:checked="true"/>
+        <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Move"
+                android:id="@+id/moveModeRadio"
+                android:layout_alignParentTop="true" android:layout_toRightOf="@+id/drawModeRadio"
+                android:layout_marginLeft="@dimen/ButtonLayoutMargin"/>
+        <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Delete"
+                android:id="@+id/deleteModeRadio"
+                android:layout_alignParentTop="true"
+                android:layout_toRightOf="@+id/moveModeRadio" android:layout_marginLeft="@dimen/ButtonLayoutMargin"/>
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Preferences"
+                android:id="@+id/prefButton"
+                android:layout_alignParentTop="true" android:layout_alignParentRight="true"
+                />
+    </RelativeLayout>
 </LinearLayout>

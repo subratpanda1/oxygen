@@ -9,13 +9,14 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.widget.TextView;
 import com.subrat.Oxygen.R;
 import com.subrat.Oxygen.backendRoutines.ShakeDetector;
 import com.subrat.Oxygen.customviews.OxygenView;
 
+import com.subrat.Oxygen.objects.Circle;
 import com.subrat.Oxygen.objects.Object;
 import com.subrat.Oxygen.utilities.Configuration;
+import com.subrat.Oxygen.utilities.MathUtils;
 
 /**
  * Created by subrat.panda on 07/05/15.
@@ -31,7 +32,6 @@ public class OxygenActivity extends Activity {
     private ShakeDetector mShakeDetector;
 
     // Repeat Task
-    private int mInterval = Configuration.getRefreshInterval(); // 200 ms by default, can be changed later
     private Handler mHandler;
     Runnable redrawObjects;
 
@@ -73,7 +73,7 @@ public class OxygenActivity extends Activity {
                     updateAllObjectsInThread();
 
                 }
-                mHandler.postDelayed(redrawObjects, mInterval);
+                mHandler.postDelayed(redrawObjects, Configuration.getRefreshInterval());
             }
         };
     }
@@ -110,14 +110,18 @@ public class OxygenActivity extends Activity {
     }
 
     private void updateSensorReading() {
-        TextView textView = (TextView) findViewById(R.id.sensorValue);
-        float[] accelValues = mShakeDetector.accelValues;
+        float[] accelValues = mShakeDetector.accelValues; // Got in mtr per sec per sec
+        float convertedAccelValuesX = MathUtils.getPixelFromDP(accelValues[0] * Configuration.getGravityScale());
+        float convertedAccelValuesY = MathUtils.getPixelFromDP(accelValues[1] * Configuration.getGravityScale());
+
+        Circle.setGravity(new PointF(-convertedAccelValuesX, convertedAccelValuesY));
+        /*
         float[] magnetValues = mShakeDetector.magnetValues;
+        TextView textView = (TextView) findViewById(R.id.sensorValue);
         String accelText = "Accel: " + accelValues[0] + ", " + accelValues[1] + ", " + accelValues[2];
         String magnetText = "Magnet: " + magnetValues[0] + ", " + magnetValues[1] + ", " + magnetValues[2];
         textView.setText(accelText + " " + magnetText);
-        Object.setGravity(new PointF(-accelValues[0] * Configuration.getGravityScale(), accelValues[1] * Configuration.getGravityScale()));
-        // Object.setGravity(new PointF(0, 9.8F * Configuration.getGravityScale()));
+        */
     }
 
     @Override

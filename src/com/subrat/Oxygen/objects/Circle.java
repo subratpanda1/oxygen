@@ -13,6 +13,7 @@ import com.subrat.Oxygen.utilities.MathUtils;
 public class Circle extends Object {
     private PointF center;
     public PointF getCenter() { return center; }
+    public void setCenter(PointF point) { center = point; }
 
     private float radius;
     public float getRadius() { return radius; }
@@ -24,6 +25,10 @@ public class Circle extends Object {
     private PointF velocity;
     public PointF getVelocity() { return velocity; }
     public void setVelocity(PointF point) { velocity = point; }
+
+    private static PointF gravity = new PointF(0, 0); // In pixels per msec per msec
+    public static PointF getGravity() { return gravity; }
+    public static void setGravity(PointF pointf) { gravity = pointf; }
 
     private Paint fillPainter = null;
     private Paint strokePainter = null;
@@ -37,8 +42,10 @@ public class Circle extends Object {
 
     public void initVelocity() {
         velocity = new PointF();
-        velocity.x = MathUtils.getRandom(-Configuration.getMaxVelocity(), Configuration.getMaxVelocity());
-        velocity.y = (float) (Math.sqrt(Math.pow(Configuration.getMaxVelocity(), 2) - Math.pow(velocity.x, 2)) * MathUtils.getRandomSign());
+        // velocity.x = MathUtils.getRandom(-Configuration.getMaxVelocity(), Configuration.getMaxVelocity());
+        // velocity.y = (float) (Math.sqrt(Math.pow(Configuration.getMaxVelocity(), 2) - Math.pow(velocity.x, 2)) * MathUtils.getRandomSign());
+        velocity.x = 0;
+        velocity.y = 0;
     }
 
     private boolean isStill() {
@@ -49,7 +56,6 @@ public class Circle extends Object {
     protected Paint getFillPainter() {
         if (fillPainter == null) {
             fillPainter = new Paint();
-            // fillPainter.setColor(Color.RED);
             fillPainter.setColor(Color.parseColor(MathUtils.getRandomColor()));
             fillPainter.setAntiAlias(true);
             fillPainter.setStyle(Paint.Style.FILL);
@@ -60,7 +66,6 @@ public class Circle extends Object {
     protected Paint getStrokePainter() {
         if (strokePainter == null) {
             strokePainter = new Paint();
-            // strokePainter.setColor(Color.GREEN);
             strokePainter.setColor(Color.parseColor(MathUtils.getRandomColor()));
             strokePainter.setAntiAlias(true);
             strokePainter.setStyle(Paint.Style.STROKE);
@@ -82,20 +87,21 @@ public class Circle extends Object {
     }
 
     public void updatePosition() {
-        PointF acceleration = new PointF(0, 0);
-        MathUtils.addToPoint(acceleration, getGravity());
-        MathUtils.addToPoint(velocity, acceleration);
-        MathUtils.addToPoint(center, velocity);
+        // Don't change velocity if acceleration is very low
+        PointF velocityChange = MathUtils.scalePoint(getGravity(), Configuration.getRefreshInterval());
+        if (Math.abs(velocityChange.x) > Configuration.getMinVelocity() || Math.abs(velocityChange.y) > Configuration.getMinVelocity()) {
+            MathUtils.addToPoint(velocity, velocityChange);
+        }
 
-        // Stop the object if it is very slow
-        if (Math.abs(velocity.x) < Configuration.getMinVelocity() && Math.abs(velocity.y) < Configuration.getMinVelocity()) {
-            velocity.x = 0;
-            velocity.y = 0;
-            return;
+        // Don't change position if velocity is very low
+        PointF positionChange = MathUtils.scalePoint(getVelocity(), Configuration.getRefreshInterval());
+        if (Math.abs(positionChange.x) > Configuration.getMinVelocity() || Math.abs(positionChange.y) > Configuration.getMinVelocity()) {
+            MathUtils.addToPoint(center, positionChange);
         }
     }
 
     public boolean checkOverlap(Object object) {
+        if (this.objectId == object.objectId) return false;
         if (object instanceof Circle) {
             Circle circle = (Circle) object;
             float threshold = MathUtils.getDistance(circle, this) - (circle.radius + this.radius);
@@ -117,11 +123,10 @@ public class Circle extends Object {
             Circle circle = (Circle) object;
             if (this.isStill() && circle.isStill()) return false;
             float threshold = MathUtils.getDistance(circle, this) - (circle.radius + this.radius);
-
             if (threshold < Configuration.getCollisionThreshold()) {
                 // Check if circles get closer in next frame
-                PointF newThisCenter = new PointF(this.center.x + this.velocity.x, this.center.y + this.velocity.y);
-                PointF newObjectCenter = new PointF(circle.center.x + circle.velocity.x, circle.center.y + circle.velocity.y);
+                PointF newThisCenter = MathUtils.addPoint(this.center, this.velocity);
+                PointF newObjectCenter = MathUtils.addPoint(circle.center, circle.velocity);
                 float newThreshold = MathUtils.getDistance(newObjectCenter, newThisCenter) - (circle.radius + this.radius);
                 if (newThreshold < threshold) {
                     return true;
@@ -133,9 +138,9 @@ public class Circle extends Object {
             float threshold = MathUtils.getDistance(this, line) - this.radius;
             if (threshold < Configuration.getCollisionThreshold()) {
                 // Check if circles get closer in next frame
-                PointF newThisCenter = new PointF(this.center.x + this.velocity.x, this.center.y + this.velocity.y);
+                PointF newThisCenter = MathUtils.addPoint(this.center, this.velocity);
                 float newThreshold = MathUtils.getDistance(newThisCenter, line) - this.radius;
-                if (newThreshold < Configuration.getCollisionThreshold()) {
+                if (newThreshold < threshold) {
                     return true;
                 }
             }
@@ -188,34 +193,49 @@ public class Circle extends Object {
             this.getVelocity().x = finalVelocity.x;
             b.getVelocity().x = finalVelocity.y;
         } else {
-            try {
-                float slope = (-1) / MathUtils.getSlope(this.getCenter(), b.getCenter());
-                float sinTheta = (float) (slope / Math.sqrt(1 + Math.pow(slope, 2)));
-                float cosTheta = (float) (1 / Math.sqrt(1 + Math.pow(slope, 2)));
+            float slope = (-1) / MathUtils.getSlope(this.getCenter(), b.getCenter());
+            float sinTheta = (float) (slope / Math.sqrt(1 + Math.pow(slope, 2)));
+            float cosTheta = (float) (1 / Math.sqrt(1 + Math.pow(slope, 2)));
 
-                // Calculate projected velocities with the collision tangent as x axis
-                float projectedVelocityXOfA = this.getVelocity().x * cosTheta + this.getVelocity().y * sinTheta;
-                float projectedVelocityYOfA = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
+            // Calculate projected velocities with the collision tangent as x axis
+            float projectedVelocityXOfA = this.getVelocity().x * cosTheta + this.getVelocity().y * sinTheta;
+            float projectedVelocityYOfA = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
 
-                float projectedVelocityXOfB = b.getVelocity().x * cosTheta + b.getVelocity().y * sinTheta;
-                float projectedVelocityYOfB = b.getVelocity().y * cosTheta - b.getVelocity().x * sinTheta;
+            float projectedVelocityXOfB = b.getVelocity().x * cosTheta + b.getVelocity().y * sinTheta;
+            float projectedVelocityYOfB = b.getVelocity().y * cosTheta - b.getVelocity().x * sinTheta;
 
-                // Compute post-collision velocities
-                PointF finalVelocity = computeOneDimensionalCollisionVelocities(new PointF(this.getMass(), b.getMass()),
-                        new PointF(projectedVelocityYOfA, projectedVelocityYOfB));
-                projectedVelocityYOfA = finalVelocity.x;
-                projectedVelocityYOfB = finalVelocity.y;
+            // Compute post-collision velocities
+            PointF finalVelocity = computeOneDimensionalCollisionVelocities(new PointF(this.getMass(), b.getMass()),
+                    new PointF(projectedVelocityYOfA, projectedVelocityYOfB));
+            projectedVelocityYOfA = finalVelocity.x;
+            projectedVelocityYOfB = finalVelocity.y;
 
-                // Calculate back projected velocities to normal axis
-                this.getVelocity().x = projectedVelocityXOfA * cosTheta - projectedVelocityYOfA * sinTheta;
-                this.getVelocity().y = projectedVelocityYOfA * cosTheta + projectedVelocityXOfA * sinTheta;
+            // Calculate back projected velocities to normal axis
+            this.getVelocity().x = projectedVelocityXOfA * cosTheta - projectedVelocityYOfA * sinTheta;
+            this.getVelocity().y = projectedVelocityYOfA * cosTheta + projectedVelocityXOfA * sinTheta;
 
-                b.getVelocity().x = projectedVelocityXOfB * cosTheta - projectedVelocityYOfB * sinTheta;
-                b.getVelocity().y = projectedVelocityYOfB * cosTheta + projectedVelocityXOfB * sinTheta;
-            } catch (Exception e) {
-                // Infinite slope
-            }
+            b.getVelocity().x = projectedVelocityXOfB * cosTheta - projectedVelocityYOfB * sinTheta;
+            b.getVelocity().y = projectedVelocityYOfB * cosTheta + projectedVelocityXOfB * sinTheta;
         }
+
+        // resolveOverlap(b);
+    }
+
+    public void resolveOverlap(Circle b) {
+        if (!checkOverlap(b)) return;
+
+        float distance = MathUtils.getDistance(this, b);
+        float overlap = distance - (this.radius + b.radius);
+        float shift = overlap / 2;
+
+        float sinTheta = (b.getCenter().y - this.getCenter().y) / distance;
+        float cosTheta = (b.getCenter().x - this.getCenter().x) / distance;
+
+        this.getCenter().x -= shift * cosTheta;
+        this.getCenter().y -= shift * sinTheta;
+
+        b.getCenter().x += shift * cosTheta;
+        b.getCenter().y += shift * sinTheta;
     }
 
     public void updateCircleToLineCollisionVelocity(Line line) {
@@ -226,24 +246,20 @@ public class Circle extends Object {
             // Horizontal Line
             this.getVelocity().y = -1F * Configuration.getRestitution() * this.getVelocity().y;
         } else {
-            try {
-                float slope = MathUtils.getSlope(line.getEnd(), line.getStart());
-                float sinTheta = (float) (slope / Math.sqrt(1 + Math.pow(slope, 2)));
-                float cosTheta = (float) (1 / Math.sqrt(1 + Math.pow(slope, 2)));
+            float slope = MathUtils.getSlope(line.getEnd(), line.getStart());
+            float sinTheta = (float) (slope / Math.sqrt(1 + Math.pow(slope, 2)));
+            float cosTheta = (float) (1 / Math.sqrt(1 + Math.pow(slope, 2)));
 
-                // Calculate projected velocities with the collision tangent as x axis
-                float projectedVelocityX = this.getVelocity().x * cosTheta + this.getVelocity().y * sinTheta;
-                float projectedVelocityY = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
+            // Calculate projected velocities with the collision tangent as x axis
+            float projectedVelocityX = this.getVelocity().x * cosTheta + this.getVelocity().y * sinTheta;
+            float projectedVelocityY = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
 
-                // Compute post-collision velocities
-                projectedVelocityY = -1F * Configuration.getRestitution() * projectedVelocityY;
+            // Compute post-collision velocities
+            projectedVelocityY = -1F * Configuration.getRestitution() * projectedVelocityY;
 
-                // Calculate back projected velocities to normal axis
-                this.getVelocity().x = projectedVelocityX * cosTheta - projectedVelocityY * sinTheta;
-                this.getVelocity().y = projectedVelocityY * cosTheta + projectedVelocityX * sinTheta;
-            } catch (Exception e) {
-                // Infinite slope
-            }
+            // Calculate back projected velocities to normal axis
+            this.getVelocity().x = projectedVelocityX * cosTheta - projectedVelocityY * sinTheta;
+            this.getVelocity().y = projectedVelocityY * cosTheta + projectedVelocityX * sinTheta;
         }
     }
 }

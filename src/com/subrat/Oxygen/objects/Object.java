@@ -19,9 +19,6 @@ public abstract class Object {
 
     protected ArrayList<Force> forceList = new ArrayList<Force>();
 
-    private static PointF gravity = new PointF(0, 0);
-    public static PointF getGravity() { return gravity; }
-    public static void setGravity(PointF pointf) { gravity = pointf; }
 
     private static List<Object> objectList = Collections.synchronizedList(new ArrayList<Object>());
     public static synchronized List<Object> getObjectList() {
