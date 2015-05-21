@@ -7,6 +7,8 @@ import android.graphics.PointF;
 import com.subrat.Oxygen.utilities.Configuration;
 import com.subrat.Oxygen.utilities.MathUtils;
 
+import java.util.ArrayList;
+
 /**
  * Created by subrat.panda on 07/05/15.
  */
@@ -45,7 +47,7 @@ public class Circle extends Object {
         // velocity.x = MathUtils.getRandom(-Configuration.getMaxVelocity(), Configuration.getMaxVelocity());
         // velocity.y = (float) (Math.sqrt(Math.pow(Configuration.getMaxVelocity(), 2) - Math.pow(velocity.x, 2)) * MathUtils.getRandomSign());
         velocity.x = 0;
-        velocity.y = 0;
+        velocity.y = 2 * Configuration.getMinVelocity();
     }
 
     private boolean isStill() {
@@ -75,28 +77,80 @@ public class Circle extends Object {
     }
 
     public boolean draw(Canvas canvas) {
-        float canvasMargin = Configuration.getCanvasMargin();
-        if (center.x < canvasMargin + radius) center.x = canvasMargin + radius;
-        if (center.y < canvasMargin + radius) center.y = canvasMargin + radius;
-        if (center.x > canvas.getWidth() - canvasMargin - radius) center.x = canvas.getWidth() - canvasMargin - radius;
-        if (center.y > canvas.getHeight() - canvasMargin - radius) center.y = canvas.getHeight() - canvasMargin - radius;
-
         canvas.drawCircle(center.x, center.y, radius, getFillPainter());
         canvas.drawCircle(center.x, center.y, radius, getStrokePainter());
         return true;
     }
 
-    public void updatePosition() {
-        // Don't change velocity if acceleration is very low
-        PointF velocityChange = MathUtils.scalePoint(getGravity(), Configuration.getRefreshInterval());
-        if (Math.abs(velocityChange.x) > Configuration.getMinVelocity() || Math.abs(velocityChange.y) > Configuration.getMinVelocity()) {
-            MathUtils.addToPoint(velocity, velocityChange);
+    public static boolean detectCircle(ArrayList<PointF> points) {
+        if (points.size() < Configuration.getCircleMinPixels()) return false;
+
+        // Check if standard deviation of all points from center is low
+        float avgx = 0, avgy = 0;
+        for (PointF point : points) {
+            avgx += point.x;
+            avgy += point.y;
         }
 
+        avgx /= points.size();
+        avgy /= points.size();
+
+        PointF center = new PointF(avgx, avgy);
+
+        ArrayList<Float> radiusList = new ArrayList<Float>();
+        for (PointF point: points) {
+            radiusList.add(MathUtils.getDistance(center, point));
+        }
+
+        float standardDeviation = MathUtils.getStandardDeviation(radiusList);
+        if (standardDeviation > Configuration.getCircleDeviationThreshold()) return false;
+
+        // Do not create if overlapping with other circles
+        Circle circle = Circle.getCircle(points);
+        for (Object object : Object.getObjectList()) {
+            if (circle.checkOverlap(object)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static Circle getCircle(ArrayList<PointF> points) {
+        float avgx = 0, avgy = 0;
+        for (PointF point : points) {
+            avgx += point.x;
+            avgy += point.y;
+        }
+
+        avgx /= points.size();
+        avgy /= points.size();
+
+        PointF center = new PointF(avgx, avgy);
+        // float radius = Configuration.getCircleRadius();
+
+        ArrayList<Float> radiusList = new ArrayList<Float>();
+        for (PointF point: points) {
+            radiusList.add(MathUtils.getDistance(center, point));
+        }
+
+        float radius = MathUtils.getMean(radiusList);
+
+        Circle circle = new Circle(center, radius);
+        return circle;
+    }
+
+    public void updatePosition() {
+        // Don't change velocity if acceleration is very low
+        // if (MathUtils.getAbsolute(this.getGravity()) > Configuration.getMinGravity()) {
+             PointF velocityChange = MathUtils.scalePoint(getGravity(), Configuration.getRefreshInterval());
+             MathUtils.addToPoint(velocity, velocityChange);
+        // }
+
         // Don't change position if velocity is very low
-        PointF positionChange = MathUtils.scalePoint(getVelocity(), Configuration.getRefreshInterval());
-        if (Math.abs(positionChange.x) > Configuration.getMinVelocity() || Math.abs(positionChange.y) > Configuration.getMinVelocity()) {
-            MathUtils.addToPoint(center, positionChange);
+        if (MathUtils.getAbsolute(this.getVelocity()) > Configuration.getMinVelocity()) {
+             PointF positionChange = MathUtils.scalePoint(getVelocity(), Configuration.getRefreshInterval());
+             MathUtils.addToPoint(center, positionChange);
         }
     }
 
@@ -243,6 +297,26 @@ public class Circle extends Object {
 
             b.getVelocity().x = projectedVelocityXOfB * cosTheta - projectedVelocityYOfB * sinTheta;
             b.getVelocity().y = projectedVelocityYOfB * cosTheta + projectedVelocityXOfB * sinTheta;
+
+            // Also update circle position so that circle does not sink through the line
+            // Update should be proportional to their speed
+            float threshold = MathUtils.getDistance(this.getCenter(), b.getCenter()) - (this.radius + b.radius);
+            if (threshold < 0) {
+                float thisSpeed = MathUtils.getAbsolute(this.getVelocity());
+                float bSpeed = MathUtils.getAbsolute(b.getVelocity());
+                Line line = new Line(this.getCenter(), b.getCenter());
+                PointF thisTransformedCenter = MathUtils.transformPointToAxis(this.getCenter(), line);
+                PointF bTransformedCenter = MathUtils.transformPointToAxis(b.getCenter(), line);
+                float thisShift = (thisSpeed / (thisSpeed + bSpeed)) * threshold; // threshold is -ve, so shift is -ve
+                float bShift = (bSpeed / (thisSpeed + bSpeed)) * threshold * -1; // threshold is -ve, so shift is +ve
+
+                thisTransformedCenter.x += thisShift;
+                bTransformedCenter.x += bShift;
+                PointF thisBackTransformedCenter = MathUtils.transformPointFromAxis(thisTransformedCenter, line);
+                PointF bBackTransformedCenter = MathUtils.transformPointFromAxis(bTransformedCenter, line);
+                this.setCenter(thisBackTransformedCenter);
+                b.setCenter(bBackTransformedCenter);
+            }
         }
     }
 
@@ -264,6 +338,13 @@ public class Circle extends Object {
             // Calculate back projected velocities to normal axis
             this.getVelocity().x = projectedVelocityX * cosTheta - projectedVelocityY * sinTheta;
             this.getVelocity().y = projectedVelocityY * cosTheta + projectedVelocityX * sinTheta;
+
+            // Also update circle position so that circle does not sink through the line
+            if (Math.abs(transformedCenter.y) < this.getRadius()) {
+                transformedCenter.y = transformedCenter.y > 0 ? this.getRadius() : -this.getRadius();
+                PointF backTransformedCenter = MathUtils.transformPointFromAxis(transformedCenter, line);
+                this.setCenter(backTransformedCenter);
+            }
         } else {
             // In this case, circle is colliding with the end point of line. Treat it as a collision with line
             // orthogonal to line joining center of circle and end point of line.
@@ -284,6 +365,15 @@ public class Circle extends Object {
                 // Calculate back projected velocities to normal axis
                 this.getVelocity().x = projectedVelocityX * cosTheta - projectedVelocityY * sinTheta;
                 this.getVelocity().y = projectedVelocityY * cosTheta + projectedVelocityX * sinTheta;
+
+                // Also update circle position so that circle does not sink through the line
+                if (threshold < 0) {
+                    Line line1 = new Line(line.getStart(), this.getCenter());
+                    PointF transformedCenter1 = MathUtils.transformPointToAxis(this.getCenter(), line1);
+                    transformedCenter.x = this.getRadius();  // transformedCenter.y should be approximately 0;
+                    PointF backTransformedCenter = MathUtils.transformPointFromAxis(transformedCenter, line1);
+                    this.setCenter(backTransformedCenter);
+                }
             }
 
             // If circle is going to hit the ending corner
@@ -302,6 +392,15 @@ public class Circle extends Object {
                 // Calculate back projected velocities to normal axis
                 this.getVelocity().x = projectedVelocityX * cosTheta - projectedVelocityY * sinTheta;
                 this.getVelocity().y = projectedVelocityY * cosTheta + projectedVelocityX * sinTheta;
+
+                // Also update circle position so that circle does not sink through the line
+                if (threshold < 0) {
+                    Line line1 = new Line(line.getEnd(), this.getCenter());
+                    PointF transformedCenter1 = MathUtils.transformPointToAxis(this.getCenter(), line1);
+                    transformedCenter.x = this.getRadius();  // transformedCenter.y should be approximately 0;
+                    PointF backTransformedCenter = MathUtils.transformPointFromAxis(transformedCenter, line1);
+                    this.setCenter(backTransformedCenter);
+                }
             }
         }
     }

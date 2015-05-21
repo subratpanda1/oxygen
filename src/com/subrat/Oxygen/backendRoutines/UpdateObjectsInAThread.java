@@ -41,26 +41,32 @@ public class UpdateObjectsInAThread {
     private Handler threadHandler;
     private Thread thread = null;
 
+    // Repeat Task
+    private Handler repeatHandler;
+    Runnable repeatRunnable;
+    boolean repeatTaskRunning;
+
     private Context context;
 
     public UpdateObjectsInAThread(Context context, Handler threadHandler) {
         this.context = context;
         this.threadHandler = threadHandler;
+        repeatTaskRunning = false;
         initializeShake();
+        initializeRepeatingTask();
     }
 
     private void startThreadEventLoop() {
         while (true) {
             if (threadInstruction.get() == ThreadInstruction.THREAD_STOP.getValue()) {
+                stopRepeatingTask();
                 break;
             } else if (threadInstruction.get() == ThreadInstruction.THREAD_CONTINUE.getValue()) {
-                updateSensorReading();
-                Object.updateAllObjects();
-                threadHandler.sendMessage(threadHandler.obtainMessage());
+                startRepeatingTask();
             }
 
             try {
-                thread.sleep(Configuration.getRefreshInterval());
+                thread.sleep(1);
             } catch(InterruptedException ex) {
                 thread.interrupt();
             }
@@ -68,26 +74,52 @@ public class UpdateObjectsInAThread {
     }
 
     public void startThread() {
-        thread = new Thread(new Runnable() {
-            public void run() {
-                startThreadEventLoop();
-            }
-        });
-        thread.start();
-
         mSensorManager.registerListener(mShakeDetector, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
         threadInstruction.set(ThreadInstruction.THREAD_CONTINUE.getValue());
+
+        if (thread == null) {
+            thread = new Thread(new Runnable() {
+                public void run() {
+                    startThreadEventLoop();
+                }
+            });
+        }
+        thread.start();
     }
 
     public void stopThread() {
-        mSensorManager.unregisterListener(mShakeDetector);
         threadInstruction.set(ThreadInstruction.THREAD_STOP.getValue());
         mSensorManager.unregisterListener(mShakeDetector);
+        thread = null;
+    }
+
+    void initializeRepeatingTask() {
+        repeatHandler = new Handler();
+        repeatRunnable = new Runnable() {
+            @Override
+            public void run() {
+                updateSensorReading();
+                Object.updateAllObjects();
+                threadHandler.sendMessage(threadHandler.obtainMessage());
+                repeatHandler.postDelayed(repeatRunnable, Configuration.getRefreshInterval());
+            }
+        };
+    }
+
+    public void startRepeatingTask() {
+        if (repeatTaskRunning) return;
+        repeatRunnable.run();
+        repeatTaskRunning = true;
+    }
+
+    public void stopRepeatingTask() {
+        if (!repeatTaskRunning) return;
+        repeatHandler.removeCallbacks(repeatRunnable);
+        repeatTaskRunning = false;
     }
 
     private void updateSensorReading() {
         float[] accelValues = mShakeDetector.accelValues; // Got in mtr per sec per sec
-        accelValues[1] = 9.8F;
         float convertedAccelValuesX = MathUtils.getPixelFromDP(accelValues[0] * Configuration.getGravityScale());
         float convertedAccelValuesY = MathUtils.getPixelFromDP(accelValues[1] * Configuration.getGravityScale());
 

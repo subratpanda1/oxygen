@@ -2,11 +2,9 @@ package com.subrat.Oxygen.activities;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import com.subrat.Oxygen.R;
 import com.subrat.Oxygen.backendRoutines.UpdateObjectsInAThread;
 import com.subrat.Oxygen.customviews.OxygenView;
@@ -20,11 +18,7 @@ public class OxygenActivity extends Activity {
     Runnable runnable;
     OxygenView oxygenView;
 
-    private static boolean haltSimulation = false;
-    public static void setHaltSimulation(boolean val) { haltSimulation = val; }
-    public static boolean getHaltSimulation() { return haltSimulation; }
-
-    UpdateObjectsInAThread updateObjectsInAThread;
+    UpdateObjectsInAThread updateObjectsInAThread = null;
     Handler threadHandler;
 
     @Override
@@ -32,6 +26,7 @@ public class OxygenActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.oxygen);
         oxygenView = (OxygenView) findViewById(R.id.view);
+        oxygenView.oxygenActivity = this;
 
         threadHandler = new Handler() {
             @Override
@@ -40,7 +35,17 @@ public class OxygenActivity extends Activity {
             }
         };
 
-        updateObjectsInAThread = new UpdateObjectsInAThread(this, threadHandler);
+        if (updateObjectsInAThread == null) {
+            updateObjectsInAThread = new UpdateObjectsInAThread(this, threadHandler);
+        }
+        startSimulation();
+    }
+
+    public void stopSimulation() {
+        updateObjectsInAThread.stopThread();
+    }
+
+    public void startSimulation() {
         updateObjectsInAThread.startThread();
     }
 
@@ -54,7 +59,7 @@ public class OxygenActivity extends Activity {
     @Override
     public void onPause() {
         super.onPause();
-        updateObjectsInAThread.stopThread();
+        stopSimulation();
     }
 
     @Override
@@ -72,7 +77,7 @@ public class OxygenActivity extends Activity {
             public void run() {
                 if (alertSecondsCounter == 0) {
                     alertDialog.cancel();
-                    updateObjectsInAThread.startThread();
+                    startSimulation();
                 } else {
                     alertDialog.setMessage("Resuming simulation in " + alertSecondsCounter-- + " seconds");
                     handler.postDelayed(runnable, 1000);

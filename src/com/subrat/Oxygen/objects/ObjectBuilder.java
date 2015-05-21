@@ -1,6 +1,5 @@
 package com.subrat.Oxygen.objects;
 
-import android.graphics.Canvas;
 import android.graphics.PointF;
 import com.subrat.Oxygen.utilities.Configuration;
 
@@ -20,30 +19,18 @@ public class ObjectBuilder {
     }
 
     public static Object buildObject(ArrayList<PointF> points) {
-        float avgx = 0, avgy = 0;
-        for (PointF point : points) {
-            avgx += point.x;
-            avgy += point.y;
+        if (Line.detectLine(points)) {
+            Line line = Line.getLine(points);
+            Object.getObjectList().add(line);
+            return line;
+        } else if (Circle.detectCircle(points)) {
+            Circle circle = Circle.getCircle(points);
+            Object.getObjectList().add(circle);
+            circle.objectId = ++objectIdCounter;
+            return circle;
         }
 
-        avgx /= points.size();
-        avgy /= points.size();
-
-        PointF center = new PointF(avgx, avgy);
-        float radius = Configuration.getCircleRadius();
-
-        Circle circle = new Circle(center, radius);
-
-        // Donot create if overlapping with other circles
-        for (Object object : Object.getObjectList()) {
-            if (circle.checkOverlap(object)) {
-                return null;
-            }
-        }
-
-        Object.getObjectList().add(circle);
-        circle.objectId = ++objectIdCounter;
-        return circle;
+        return null;
     }
 
     public static void createOrUpdateBoundaryLines(float width, float height) {
@@ -61,13 +48,13 @@ public class ObjectBuilder {
             buildLine(bottomLeft, bottomRight);
             buildLine(topLeft, bottomLeft);
             buildLine(topRight, bottomRight);
-            buildLine(topLeftMid, bottomRightMid);
+            // buildLine(topLeftMid, bottomRightMid);
         } else {
             ((Line) Object.getObjectList().get(0)).setEndPoints(topLeft, topRight);
             ((Line) Object.getObjectList().get(1)).setEndPoints(bottomLeft, bottomRight);
             ((Line) Object.getObjectList().get(2)).setEndPoints(topLeft, bottomLeft);
             ((Line) Object.getObjectList().get(3)).setEndPoints(topRight, bottomRight);
-            ((Line) Object.getObjectList().get(4)).setEndPoints(topLeftMid, bottomRightMid);
+            // ((Line) Object.getObjectList().get(4)).setEndPoints(topLeftMid, bottomRightMid);
         }
     }
 }

@@ -19,6 +19,7 @@ public class OxygenView extends View implements View.OnTouchListener {
     ArrayList<PointF> points;
     public boolean drawingMode = false;
     Path path = new Path();
+    public OxygenActivity oxygenActivity;
 
     private void initializeView() {
         if (isInEditMode()) return;
@@ -78,7 +79,7 @@ public class OxygenView extends View implements View.OnTouchListener {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 drawingMode = true;
-                OxygenActivity.setHaltSimulation(true);
+                oxygenActivity.stopSimulation();
                 break;
             case MotionEvent.ACTION_MOVE:
                 break;
@@ -86,7 +87,8 @@ public class OxygenView extends View implements View.OnTouchListener {
                 ObjectBuilder.buildObject(points);
                 points.clear();
                 drawingMode = false;
-                OxygenActivity.setHaltSimulation(false);
+                oxygenActivity.startSimulation();
+                break;
             default:
                 return false;
         }
