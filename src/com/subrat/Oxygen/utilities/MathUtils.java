@@ -3,6 +3,7 @@ package com.subrat.Oxygen.utilities;
 import android.content.res.Resources;
 import android.util.DisplayMetrics;
 import android.graphics.PointF;
+import android.util.Log;
 import com.subrat.Oxygen.objects.Circle;
 import com.subrat.Oxygen.objects.Line;
 
@@ -73,6 +74,10 @@ public class MathUtils {
         a.y += b.y;
     }
 
+    public static float getAbsolute(PointF point) {
+        return (float)Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
+    }
+
     public static PointF scalePoint(PointF a, float scale) {
         return new PointF(a.x * scale, a.y * scale);
     }
@@ -133,13 +138,13 @@ public class MathUtils {
         float sinTheta = MathUtils.getSinTheta(start, end);
         float cosTheta = MathUtils.getCosTheta(start, end);
 
-        // First do linear transform of axes from start to origin
-        float tmpX = point.x + start.x;
-        float tmpY = point.y + start.y;
-
         // Now rotate axis back to global axis
-        float tmpXX = tmpX * cosTheta - tmpY * sinTheta;
-        float tmpYY = tmpY * cosTheta + tmpX * sinTheta;
+        float tmpX = point.x * cosTheta - point.y * sinTheta;
+        float tmpY = point.y * cosTheta + point.x * sinTheta;
+
+        // First do linear transform of axes from start to origin
+        float tmpXX = tmpX + start.x;
+        float tmpYY = tmpY + start.y;
 
         return new PointF(tmpXX, tmpYY);
     }
@@ -157,7 +162,9 @@ public class MathUtils {
     public static float getStandardDeviation(ArrayList<Float> dataList, float mean) {
         if (dataList.isEmpty()) return 0;
         float sum = 0;
+        // Log.d("MyApp", "Mean: " + mean);
         for (float data : dataList) {
+            // Log.d("MyApp", "data: " + data + ",sd: " + Math.pow(data - mean, 2));
             sum += Math.pow(data - mean, 2);
         }
 
@@ -166,5 +173,9 @@ public class MathUtils {
 
     public static float getStandardDeviation(ArrayList<Float> dataList) {
         return getStandardDeviation(dataList, getMean(dataList));
+    }
+
+    public static String getPointString(PointF point) {
+        return new String("(" + point.x + ", " + point.y + ")");
     }
 }

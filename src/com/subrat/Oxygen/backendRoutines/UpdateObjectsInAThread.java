@@ -63,9 +63,6 @@ public class UpdateObjectsInAThread {
                 break;
             } else if (threadInstruction.get() == ThreadInstruction.THREAD_CONTINUE.getValue()) {
                 startRepeatingTask();
-                // updateSensorReading();
-                // Object.updateAllObjects();
-                // threadHandler.sendMessage(threadHandler.obtainMessage());
             }
 
             try {
@@ -123,7 +120,6 @@ public class UpdateObjectsInAThread {
 
     private void updateSensorReading() {
         float[] accelValues = mShakeDetector.accelValues; // Got in mtr per sec per sec
-        accelValues[1] = 9.8F;
         float convertedAccelValuesX = MathUtils.getPixelFromDP(accelValues[0] * Configuration.getGravityScale());
         float convertedAccelValuesY = MathUtils.getPixelFromDP(accelValues[1] * Configuration.getGravityScale());
 

@@ -2,11 +2,9 @@ package com.subrat.Oxygen.activities;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import com.subrat.Oxygen.R;
 import com.subrat.Oxygen.backendRoutines.UpdateObjectsInAThread;
 import com.subrat.Oxygen.customviews.OxygenView;

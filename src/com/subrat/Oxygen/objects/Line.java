@@ -4,7 +4,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.util.Log;
 import com.subrat.Oxygen.utilities.Configuration;
 import com.subrat.Oxygen.utilities.MathUtils;
 
@@ -46,7 +45,7 @@ public class Line extends Object {
     }
 
     public static boolean detectLine(ArrayList<PointF> points) {
-        if (points.size() < 10) return false;
+        if (points.size() < Configuration.getLineMinPixels()) return false;
 
         ArrayList<Float> slopeList = new ArrayList<Float>();
         PointF start = points.get(0);
@@ -56,10 +55,13 @@ public class Line extends Object {
         }
 
         float standardDeviation = MathUtils.getStandardDeviation(slopeList);
+        if (standardDeviation > Configuration.getLineDeviationThreshold()) return false;
 
-        if (standardDeviation < Configuration.getLineDeviationThreshold()) return true;
+        return true;
+    }
 
-        return false;
+    public static Line getLine(ArrayList<PointF> points) {
+        return new Line(points.get(0), points.get(points.size() - 1));
     }
 
     public void updatePosition() {

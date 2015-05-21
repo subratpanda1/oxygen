@@ -3,7 +3,6 @@ package com.subrat.Oxygen.customviews;
 import android.content.Context;
 import android.graphics.*;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import com.subrat.Oxygen.activities.OxygenActivity;
