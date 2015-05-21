@@ -162,9 +162,7 @@ public class MathUtils {
     public static float getStandardDeviation(ArrayList<Float> dataList, float mean) {
         if (dataList.isEmpty()) return 0;
         float sum = 0;
-        // Log.d("MyApp", "Mean: " + mean);
         for (float data : dataList) {
-            // Log.d("MyApp", "data: " + data + ",sd: " + Math.pow(data - mean, 2));
             sum += Math.pow(data - mean, 2);
         }
 
