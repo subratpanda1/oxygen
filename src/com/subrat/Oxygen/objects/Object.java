@@ -53,7 +53,7 @@ public abstract class Object {
         for (Object object : Object.getObjectList()) {
             if (object instanceof Circle) {
                 Circle circle = (Circle) object;
-                circle.initVelocity();
+                circle.initRandomVelocity();
             }
         }
     }

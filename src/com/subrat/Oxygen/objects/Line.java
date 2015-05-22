@@ -49,6 +49,10 @@ public class Line extends Object {
 
         ArrayList<Float> slopeList = new ArrayList<Float>();
         PointF start = points.get(0);
+        PointF end = points.get(points.size() - 1);
+
+        if (MathUtils.getDistance(start, end) < Configuration.getLineMinLength()) return false;
+
         for (PointF point : points) {
             if (point == start) continue;
             slopeList.add(MathUtils.getSinTheta(start, point));

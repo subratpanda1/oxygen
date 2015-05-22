@@ -2,6 +2,7 @@ package com.subrat.Oxygen.activities;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -14,6 +15,8 @@ import com.subrat.Oxygen.objects.Object;
  * Created by subrat.panda on 07/05/15.
  */
 public class OxygenActivity extends Activity {
+    private static Context context = null;
+
     private int alertSecondsCounter = 0;
     Runnable runnable;
     OxygenView oxygenView;
@@ -28,6 +31,8 @@ public class OxygenActivity extends Activity {
         oxygenView = (OxygenView) findViewById(R.id.view);
         oxygenView.oxygenActivity = this;
 
+        context = this;
+
         threadHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
@@ -40,6 +45,8 @@ public class OxygenActivity extends Activity {
         }
         startSimulation();
     }
+
+    public static Context getContext() { return context; }
 
     public void stopSimulation() {
         updateObjectsInAThread.stopThread();

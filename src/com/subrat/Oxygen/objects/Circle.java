@@ -1,9 +1,9 @@
 package com.subrat.Oxygen.objects;
 
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PointF;
+import android.graphics.*;
+import android.util.Log;
+import com.subrat.Oxygen.R;
+import com.subrat.Oxygen.activities.OxygenActivity;
 import com.subrat.Oxygen.utilities.Configuration;
 import com.subrat.Oxygen.utilities.MathUtils;
 
@@ -34,20 +34,27 @@ public class Circle extends Object {
 
     private Paint fillPainter = null;
     private Paint strokePainter = null;
+    Bitmap pic;
 
     public Circle(PointF center, float radius) {
         this.center = center;
         this.radius = radius;
 
         initVelocity();
+        pic = BitmapFactory.decodeResource(OxygenActivity.getContext().getResources(), R.drawable.tennis_ball);
+        pic = Bitmap.createScaledBitmap(pic, 2 * (int)this.radius, 2 * (int)this.radius,  true);
     }
 
     public void initVelocity() {
         velocity = new PointF();
-        // velocity.x = MathUtils.getRandom(-Configuration.getMaxVelocity(), Configuration.getMaxVelocity());
-        // velocity.y = (float) (Math.sqrt(Math.pow(Configuration.getMaxVelocity(), 2) - Math.pow(velocity.x, 2)) * MathUtils.getRandomSign());
         velocity.x = 0;
-        velocity.y = 2 * Configuration.getMinVelocity();
+        velocity.y = 0;
+    }
+
+    public void initRandomVelocity() {
+        velocity = new PointF();
+        velocity.x = MathUtils.getRandom(-Configuration.getMaxVelocity(), Configuration.getMaxVelocity());
+        velocity.y = (float) (Math.sqrt(Math.pow(Configuration.getMaxVelocity(), 2) - Math.pow(velocity.x, 2)) * MathUtils.getRandomSign());
     }
 
     private boolean isStill() {
@@ -77,8 +84,11 @@ public class Circle extends Object {
     }
 
     public boolean draw(Canvas canvas) {
-        canvas.drawCircle(center.x, center.y, radius, getFillPainter());
-        canvas.drawCircle(center.x, center.y, radius, getStrokePainter());
+        // canvas.drawCircle(center.x, center.y, radius, getFillPainter());
+        // canvas.drawCircle(center.x, center.y, radius, getStrokePainter());
+        float bitmapCornerX = this.getCenter().x - this.getRadius();
+        float bitmapCornerY = this.getCenter().y - this.getRadius();
+        canvas.drawBitmap(pic, bitmapCornerX,bitmapCornerY, null);
         return true;
     }
 
@@ -102,7 +112,9 @@ public class Circle extends Object {
             radiusList.add(MathUtils.getDistance(center, point));
         }
 
-        float standardDeviation = MathUtils.getStandardDeviation(radiusList);
+        float meanRadius = MathUtils.getMean(radiusList);
+        if (meanRadius < Configuration.getCircleMinRadius()) return false;
+        float standardDeviation = MathUtils.getStandardDeviation(radiusList, meanRadius);
         if (standardDeviation > Configuration.getCircleDeviationThreshold()) return false;
 
         // Do not create if overlapping with other circles
@@ -370,8 +382,8 @@ public class Circle extends Object {
                 if (threshold < 0) {
                     Line line1 = new Line(line.getStart(), this.getCenter());
                     PointF transformedCenter1 = MathUtils.transformPointToAxis(this.getCenter(), line1);
-                    transformedCenter.x = this.getRadius();  // transformedCenter.y should be approximately 0;
-                    PointF backTransformedCenter = MathUtils.transformPointFromAxis(transformedCenter, line1);
+                    transformedCenter1.x = this.getRadius();  // transformedCenter.y should be approximately 0;
+                    PointF backTransformedCenter = MathUtils.transformPointFromAxis(transformedCenter1, line1);
                     this.setCenter(backTransformedCenter);
                 }
             }
@@ -397,8 +409,8 @@ public class Circle extends Object {
                 if (threshold < 0) {
                     Line line1 = new Line(line.getEnd(), this.getCenter());
                     PointF transformedCenter1 = MathUtils.transformPointToAxis(this.getCenter(), line1);
-                    transformedCenter.x = this.getRadius();  // transformedCenter.y should be approximately 0;
-                    PointF backTransformedCenter = MathUtils.transformPointFromAxis(transformedCenter, line1);
+                    transformedCenter1.x = this.getRadius();  // transformedCenter.y should be approximately 0;
+                    PointF backTransformedCenter = MathUtils.transformPointFromAxis(transformedCenter1, line1);
                     this.setCenter(backTransformedCenter);
                 }
             }

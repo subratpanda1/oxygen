@@ -7,6 +7,7 @@ import android.hardware.SensorManager;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
+import com.subrat.Oxygen.activities.OxygenActivity;
 import com.subrat.Oxygen.customviews.OxygenView;
 import com.subrat.Oxygen.objects.*;
 import com.subrat.Oxygen.objects.Object;
@@ -46,10 +47,10 @@ public class UpdateObjectsInAThread {
     Runnable repeatRunnable;
     boolean repeatTaskRunning;
 
-    private Context context;
+    // private Context context;
 
     public UpdateObjectsInAThread(Context context, Handler threadHandler) {
-        this.context = context;
+        // this.context = context;
         this.threadHandler = threadHandler;
         repeatTaskRunning = false;
         initializeShake();
@@ -128,7 +129,7 @@ public class UpdateObjectsInAThread {
     }
 
     private void initializeShake() {
-        mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        mSensorManager = (SensorManager) OxygenActivity.getContext().getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mShakeDetector = new ShakeDetector();
         mShakeDetector.setOnShakeListener(new ShakeDetector.OnShakeListener() {

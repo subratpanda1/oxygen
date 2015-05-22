@@ -54,6 +54,7 @@ public class OxygenView extends View implements View.OnTouchListener {
 
     @Override
     public void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
         if (drawingMode) {
             boolean firstTime = true;
             for (PointF point : points) {
