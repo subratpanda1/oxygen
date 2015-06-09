@@ -5,4 +5,5 @@ out/
 Oxygen.apk
 Oxygen.iml
 .project
+.cproject
 .classpath
