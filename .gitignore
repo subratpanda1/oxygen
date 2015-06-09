@@ -4,3 +4,5 @@ out/
 .idea/
 Oxygen.apk
 Oxygen.iml
+.project
+.classpath
