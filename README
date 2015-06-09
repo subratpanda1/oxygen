@@ -1,0 +1,6 @@
+This project requires the following libraries
+Andriod NDK
+LiquidFun
+
+Download the above libraries and extract at the top level directory of the project.
+
