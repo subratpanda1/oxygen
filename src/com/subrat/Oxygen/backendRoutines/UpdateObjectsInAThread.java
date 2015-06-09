@@ -4,11 +4,8 @@ import android.content.Context;
 import android.graphics.PointF;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
-import android.os.AsyncTask;
 import android.os.Handler;
-import android.util.Log;
 import com.subrat.Oxygen.activities.OxygenActivity;
-import com.subrat.Oxygen.customviews.OxygenView;
 import com.subrat.Oxygen.objects.*;
 import com.subrat.Oxygen.objects.Object;
 import com.subrat.Oxygen.utilities.Configuration;
@@ -67,7 +64,7 @@ public class UpdateObjectsInAThread {
             }
 
             try {
-                thread.sleep(1);
+                Thread.sleep(1);
             } catch(InterruptedException ex) {
                 thread.interrupt();
             }

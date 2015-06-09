@@ -1,8 +1,6 @@
 package com.subrat.Oxygen.objects;
 
 import android.graphics.Canvas;
-import android.graphics.PointF;
-import com.subrat.Oxygen.utilities.MathUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,7 +1,6 @@
 package com.subrat.Oxygen.objects;
 
 import android.graphics.*;
-import android.util.Log;
 import com.subrat.Oxygen.R;
 import com.subrat.Oxygen.activities.OxygenActivity;
 import com.subrat.Oxygen.utilities.Configuration;

@@ -3,7 +3,6 @@ package com.subrat.Oxygen.utilities;
 import android.content.res.Resources;
 import android.util.DisplayMetrics;
 import android.graphics.PointF;
-import android.util.Log;
 import com.subrat.Oxygen.objects.Circle;
 import com.subrat.Oxygen.objects.Line;
 

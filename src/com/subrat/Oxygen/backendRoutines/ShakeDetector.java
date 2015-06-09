@@ -4,7 +4,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.widget.TextView;
 
 /**
  * Created by subrat.panda on 08/05/15.
