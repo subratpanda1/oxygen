@@ -1,6 +1,7 @@
 package com.subrat.Oxygen.objects;
 
 import android.graphics.*;
+
 import com.subrat.Oxygen.R;
 import com.subrat.Oxygen.activities.OxygenActivity;
 import com.subrat.Oxygen.utilities.Configuration;
@@ -12,22 +13,22 @@ import java.util.ArrayList;
  * Created by subrat.panda on 07/05/15.
  */
 public class Circle extends Object {
-    private PointF center;
+    private PointF center; // In mtr
     public PointF getCenter() { return center; }
     public void setCenter(PointF point) { center = point; }
 
-    private float radius;
+    private float radius; // In mtr
     public float getRadius() { return radius; }
 
     public float getMass() {
         return (float) (3.14F * Math.pow(radius, 2) * Configuration.getCircleDensity());
     }
 
-    private PointF velocity;
+    private PointF velocity; // In mtr per sec
     public PointF getVelocity() { return velocity; }
     public void setVelocity(PointF point) { velocity = point; }
 
-    private static PointF gravity = new PointF(0, 0); // In pixels per msec per msec
+    private static PointF gravity = new PointF(0, 0); // In mtr per sec per sec
     public static PointF getGravity() { return gravity; }
     public static void setGravity(PointF pointf) { gravity = pointf; }
 
@@ -40,8 +41,12 @@ public class Circle extends Object {
         this.radius = radius;
 
         initVelocity();
+        initBitmap();
+    }
+    
+    private void initBitmap() {
         pic = BitmapFactory.decodeResource(OxygenActivity.getContext().getResources(), R.drawable.tennis_ball);
-        pic = Bitmap.createScaledBitmap(pic, 2 * (int)this.radius, 2 * (int)this.radius,  true);
+        pic = Bitmap.createScaledBitmap(pic, 2 * MathUtils.getPixelFromMeter(this.radius), 2 * MathUtils.getPixelFromMeter(this.radius),  true);
     }
 
     public void initVelocity() {
@@ -83,11 +88,9 @@ public class Circle extends Object {
     }
 
     public boolean draw(Canvas canvas) {
-        // canvas.drawCircle(center.x, center.y, radius, getFillPainter());
-        // canvas.drawCircle(center.x, center.y, radius, getStrokePainter());
-        float bitmapCornerX = this.getCenter().x - this.getRadius();
-        float bitmapCornerY = this.getCenter().y - this.getRadius();
-        canvas.drawBitmap(pic, bitmapCornerX,bitmapCornerY, null);
+        int bitmapCornerX = MathUtils.getPixelFromMeter(this.getCenter().x - this.getRadius());
+        int bitmapCornerY = MathUtils.getPixelFromMeter(this.getCenter().y - this.getRadius());
+        canvas.drawBitmap(pic, bitmapCornerX, bitmapCornerY, null);
         return true;
     }
 
@@ -146,27 +149,34 @@ public class Circle extends Object {
         }
 
         float radius = MathUtils.getMean(radiusList);
-
+        
         Circle circle = new Circle(center, radius);
+        circle.setObjectId(ObjectBuilder.getNextObjectId());
+        Object.getObjectList().add(circle);
+        
+        if (Configuration.useLiquidFunPhysics()) {
+        	OxygenActivity.getPhysicsEngine().createCircle(circle);
+        }
+        
         return circle;
     }
-
+    
     public void updatePosition() {
         // Don't change velocity if acceleration is very low
         // if (MathUtils.getAbsolute(this.getGravity()) > Configuration.getMinGravity()) {
              PointF velocityChange = MathUtils.scalePoint(getGravity(), Configuration.getRefreshInterval());
              MathUtils.addToPoint(velocity, velocityChange);
         // }
-
+             
         // Don't change position if velocity is very low
-        if (MathUtils.getAbsolute(this.getVelocity()) > Configuration.getMinVelocity()) {
+        // if (MathUtils.getAbsolute(this.getVelocity()) > Configuration.getMinVelocity()) {
              PointF positionChange = MathUtils.scalePoint(getVelocity(), Configuration.getRefreshInterval());
              MathUtils.addToPoint(center, positionChange);
-        }
+        // }
     }
 
     public boolean checkOverlap(Object object) {
-        if (this.objectId == object.objectId) return false;
+        if (this.getObjectId() == object.getObjectId()) return false;
         if (object instanceof Circle) {
             Circle circle = (Circle) object;
             float threshold = MathUtils.getDistance(circle.getCenter(), this.getCenter()) - (circle.radius + this.radius);
@@ -183,7 +193,7 @@ public class Circle extends Object {
     }
 
     public boolean checkCollision(Object object) throws Exception {
-        if (this.objectId == object.objectId) return false;
+        if (this.getObjectId() == object.getObjectId()) return false;
         if (object instanceof Circle) {
             Circle circle = (Circle) object;
             if (this.isStill() && circle.isStill()) return false;
@@ -245,7 +255,7 @@ public class Circle extends Object {
     }
 
     public void updateCollision(Object object) throws Exception {
-        if (this.objectId == object.objectId) return;
+        if (this.getObjectId() == object.getObjectId()) return;
         if (object instanceof Circle) {
             Circle circle = (Circle) object;
             updateCircleToCircleCollisionVelocity(circle);
@@ -315,7 +325,7 @@ public class Circle extends Object {
             if (threshold < 0) {
                 float thisSpeed = MathUtils.getAbsolute(this.getVelocity());
                 float bSpeed = MathUtils.getAbsolute(b.getVelocity());
-                Line line = new Line(this.getCenter(), b.getCenter());
+                Line line = Line.getTemporaryLine(this.getCenter(), b.getCenter());
                 PointF thisTransformedCenter = MathUtils.transformPointToAxis(this.getCenter(), line);
                 PointF bTransformedCenter = MathUtils.transformPointToAxis(b.getCenter(), line);
                 float thisShift = (thisSpeed / (thisSpeed + bSpeed)) * threshold; // threshold is -ve, so shift is -ve
@@ -379,7 +389,7 @@ public class Circle extends Object {
 
                 // Also update circle position so that circle does not sink through the line
                 if (threshold < 0) {
-                    Line line1 = new Line(line.getStart(), this.getCenter());
+                    Line line1 = Line.getTemporaryLine(line.getStart(), this.getCenter());
                     PointF transformedCenter1 = MathUtils.transformPointToAxis(this.getCenter(), line1);
                     transformedCenter1.x = this.getRadius();  // transformedCenter.y should be approximately 0;
                     PointF backTransformedCenter = MathUtils.transformPointFromAxis(transformedCenter1, line1);
@@ -406,7 +416,7 @@ public class Circle extends Object {
 
                 // Also update circle position so that circle does not sink through the line
                 if (threshold < 0) {
-                    Line line1 = new Line(line.getEnd(), this.getCenter());
+                    Line line1 = Line.getTemporaryLine(line.getEnd(), this.getCenter());
                     PointF transformedCenter1 = MathUtils.transformPointToAxis(this.getCenter(), line1);
                     transformedCenter1.x = this.getRadius();  // transformedCenter.y should be approximately 0;
                     PointF backTransformedCenter = MathUtils.transformPointFromAxis(transformedCenter1, line1);

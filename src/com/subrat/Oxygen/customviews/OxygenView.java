@@ -45,7 +45,9 @@ public class OxygenView extends View implements View.OnTouchListener {
     }
 
     private void drawAllObjects(Canvas canvas) {
-        ObjectBuilder.createOrUpdateBoundaryLines(canvas.getWidth(), canvas.getHeight());
+    	if (OxygenActivity.getContext() == null) return;
+    	OxygenActivity.setCanvasDimensions(canvas.getWidth(), canvas.getHeight());
+        ObjectBuilder.createOrUpdateBoundaryLines();
 
         for (Object object : Object.getObjectList()) {
             object.draw(canvas);

@@ -11,6 +11,8 @@ import com.subrat.Oxygen.activities.OxygenActivity;
 import com.subrat.Oxygen.utilities.MathUtils;
 
 public class MainActivity extends Activity {
+
+    
     Button.OnClickListener onClickListener;
     /**
      * Called when the activity is first created.
@@ -19,6 +21,10 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        
+    	System.loadLibrary("liquidfun");
+        System.loadLibrary("liquidfun_jni");
+        
         initializeMain();
 
         MathUtils.resources = getResources();
