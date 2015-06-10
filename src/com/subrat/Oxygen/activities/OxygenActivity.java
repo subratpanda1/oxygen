@@ -6,16 +6,25 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+
 import com.subrat.Oxygen.R;
+import com.subrat.Oxygen.backendRoutines.PhysicsEngine;
 import com.subrat.Oxygen.backendRoutines.UpdateObjectsInAThread;
 import com.subrat.Oxygen.customviews.OxygenView;
 import com.subrat.Oxygen.objects.Object;
+import com.subrat.Oxygen.utilities.Configuration;
 
 /**
  * Created by subrat.panda on 07/05/15.
  */
 public class OxygenActivity extends Activity {
     private static Context context = null;
+    private static int canvasWidth = 0;    // In pixels
+    private static int canvasHeight = 0;   // In pixels
+	private static float worldWidth = 0;   // In meter
+	private static float worldHeight = 0F; // In meter
+	
+	private static PhysicsEngine physicsEngine;
 
     private int alertSecondsCounter = 0;
     Runnable runnable;
@@ -30,6 +39,10 @@ public class OxygenActivity extends Activity {
         setContentView(R.layout.oxygen);
         oxygenView = (OxygenView) findViewById(R.id.view);
         oxygenView.oxygenActivity = this;
+        
+        if (Configuration.useLiquidFunPhysics()) {
+        	physicsEngine = new PhysicsEngine();
+        }
 
         context = this;
 
@@ -43,10 +56,13 @@ public class OxygenActivity extends Activity {
         if (updateObjectsInAThread == null) {
             updateObjectsInAThread = new UpdateObjectsInAThread(this, threadHandler);
         }
+        
         startSimulation();
     }
 
     public static Context getContext() { return context; }
+    
+    public static PhysicsEngine getPhysicsEngine() { return physicsEngine; }
 
     public void stopSimulation() {
         updateObjectsInAThread.stopThread();
@@ -60,6 +76,12 @@ public class OxygenActivity extends Activity {
     public void onBackPressed() {
         super.onBackPressed();
         Object.getObjectList().clear();
+        context = null;
+        
+        if (Configuration.useLiquidFunPhysics()) {
+        	physicsEngine.clearWorld();
+        }
+
         finish();
     }
 
@@ -93,6 +115,19 @@ public class OxygenActivity extends Activity {
         };
 
         handler.postDelayed(runnable, 1000);
+    }
+    
+    public static int getCanvasWidth() { return canvasWidth; }
+    public static int getCanvasHeight() { return canvasHeight; }
+    public static float getWorldWidth() { return worldWidth; }
+    public static float getWorldHeight() { return worldHeight; }
+    
+    public static void setCanvasDimensions(int width, int height) { 
+    	canvasWidth = width;
+    	canvasHeight = height;
+    	worldHeight = Configuration.getDefaultWorldHeight();
+    	int pixelsPerMeter = (int)(canvasHeight / worldHeight);
+    	worldWidth = (float)canvasWidth / (float)pixelsPerMeter;
     }
 }
 

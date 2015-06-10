@@ -1,8 +1,9 @@
 package com.subrat.Oxygen.utilities;
 
 import android.content.res.Resources;
-import android.util.DisplayMetrics;
 import android.graphics.PointF;
+
+import com.subrat.Oxygen.activities.OxygenActivity;
 import com.subrat.Oxygen.objects.Circle;
 import com.subrat.Oxygen.objects.Line;
 
@@ -49,6 +50,10 @@ public class MathUtils {
 
     public static float getDistance(Circle a, Line b) {
         return getDistance(a.getCenter(), b);
+    }
+    
+    public static float getRadian(PointF a, PointF b) {
+    	return (float)Math.atan2(b.y - a.y, b.x - a.x);
     }
 
     public static float getSlope(PointF a, PointF b) {
@@ -103,12 +108,7 @@ public class MathUtils {
         return hexColor;
     }
 
-    public static float getPixelFromDP(float dp) {
-        if (resources == null) return dp;
-        DisplayMetrics displayMetrics = resources.getDisplayMetrics();
-        float px = dp * (displayMetrics.density);
-        return px;
-    }
+
 
     public static PointF clonePoint(PointF point) {
         return new PointF(point.x, point.y);
@@ -117,8 +117,8 @@ public class MathUtils {
     public static PointF transformPointToAxis(PointF point, Line line) {
         PointF start = line.getStart();
         PointF end = line.getEnd();
-        float sinTheta = MathUtils.getSinTheta(start, end);
-        float cosTheta = MathUtils.getCosTheta(start, end);
+        float sinTheta = getSinTheta(start, end);
+        float cosTheta = getCosTheta(start, end);
 
         // First do linear transform of axes from origin to start
         float tmpX = point.x - start.x;
@@ -134,8 +134,8 @@ public class MathUtils {
     public static PointF transformPointFromAxis(PointF point, Line line) {
         PointF start = line.getStart();
         PointF end = line.getEnd();
-        float sinTheta = MathUtils.getSinTheta(start, end);
-        float cosTheta = MathUtils.getCosTheta(start, end);
+        float sinTheta = getSinTheta(start, end);
+        float cosTheta = getCosTheta(start, end);
 
         // Now rotate axis back to global axis
         float tmpX = point.x * cosTheta - point.y * sinTheta;
@@ -171,8 +171,42 @@ public class MathUtils {
     public static float getStandardDeviation(ArrayList<Float> dataList) {
         return getStandardDeviation(dataList, getMean(dataList));
     }
+    
+    public static float getPI() { return 3.141F; }
 
     public static String getPointString(PointF point) {
         return new String("(" + point.x + ", " + point.y + ")");
     }
+    
+	public static int getPixelFromMeter(float meter) {
+    	int pixelsPerMeter = (int)(OxygenActivity.getCanvasHeight() / OxygenActivity.getWorldHeight());
+		return (int)(meter * pixelsPerMeter);
+	}
+	
+	public static float getMeterFromPixel(int pixel) {
+    	int pixelsPerMeter = (int)(OxygenActivity.getCanvasHeight() / OxygenActivity.getWorldHeight());
+		return ((float)pixel / (float)pixelsPerMeter);
+	}
+	
+	public static PointF getPixelBasedPointFromMeterBasedPoint(PointF point) {
+		return new PointF(getPixelFromMeter(point.x), getPixelFromMeter(point.y));
+	}
+
+	public static PointF getMeterBasedPointFromPixelBasedPoint(PointF point) {
+		return new PointF(getMeterFromPixel((int)point.x), getMeterFromPixel((int)point.y));
+	}
+	
+	public static void transformToMeterBasedPoints(ArrayList<PointF> points) {
+		for (PointF point : points) {
+			point.x = getMeterFromPixel((int)point.x);
+			point.y = getMeterFromPixel((int)point.y);
+		}
+	}
+	
+	public static void transformToPixelBasedPoints(ArrayList<PointF> points) {
+		for (PointF point : points) {
+			point.x = getPixelFromMeter((int)point.x);
+			point.y = getPixelFromMeter((int)point.y);
+		}
+	}
 }

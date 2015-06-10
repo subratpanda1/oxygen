@@ -9,7 +9,6 @@ import com.subrat.Oxygen.activities.OxygenActivity;
 import com.subrat.Oxygen.objects.*;
 import com.subrat.Oxygen.objects.Object;
 import com.subrat.Oxygen.utilities.Configuration;
-import com.subrat.Oxygen.utilities.MathUtils;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -99,7 +98,7 @@ public class UpdateObjectsInAThread {
                 updateSensorReading();
                 Object.updateAllObjects();
                 threadHandler.sendMessage(threadHandler.obtainMessage());
-                repeatHandler.postDelayed(repeatRunnable, Configuration.getRefreshInterval());
+                repeatHandler.postDelayed(repeatRunnable, (int)Configuration.getRefreshInterval() * 1000/*in msec*/);
             }
         };
     }
@@ -118,8 +117,8 @@ public class UpdateObjectsInAThread {
 
     private void updateSensorReading() {
         float[] accelValues = mShakeDetector.accelValues; // Got in mtr per sec per sec
-        float convertedAccelValuesX = MathUtils.getPixelFromDP(accelValues[0] * Configuration.getGravityScale());
-        float convertedAccelValuesY = MathUtils.getPixelFromDP(accelValues[1] * Configuration.getGravityScale());
+        float convertedAccelValuesX = accelValues[0];
+        float convertedAccelValuesY = accelValues[1];
 
         Circle.setGravity(new PointF(-convertedAccelValuesX, convertedAccelValuesY));
         // float[] magnetValues = mShakeDetector.magnetValues;
