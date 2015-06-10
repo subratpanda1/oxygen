@@ -4,3 +4,18 @@ LiquidFun
 
 Download the above libraries and extract at the top level directory of the project.
 
+Add following lines for swig lines generation:
+liquidfun-1.1.0/liquidfun/Box2D/swig/java/Dynamics/b2Fixture.swig
+    float32 friction;
+    float32 restitution;
+    float32 density;
+    bool isSensor;
+
+
+For run timeout issues (Eclipse):
+Window -> Preferences -> Android -> DDMS -> ADB Connection Timeout (ms)
+
+If swig_gen linked resource is not present already, do the following:
+Go to Project -> Properties -> Java Build Path -> Source -> Link Source
+Folder Path: PROJECT_LOC/liquidfun-1.1.0/liquidfun/Box2D/swig/gen
+Folder Name: swig_gen

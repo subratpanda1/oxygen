@@ -50,7 +50,7 @@
 		<link>
 			<name>swig_gen</name>
 			<type>2</type>
-			<location>/Users/subrat.panda/AndroidStudioProjects/Oxygen/liquidfun-1.1.0/liquidfun/Box2D/swig/gen</location>
+			<locationURI>PROJECT_LOC/liquidfun-1.1.0/liquidfun/Box2D/swig/gen</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
