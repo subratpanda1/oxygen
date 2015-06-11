@@ -95,6 +95,7 @@ public class UpdateObjectsInAThread {
         repeatRunnable = new Runnable() {
             @Override
             public void run() {
+            	if (OxygenActivity.getContext() == null) return;
                 updateSensorReading();
                 Object.updateAllObjects();
                 threadHandler.sendMessage(threadHandler.obtainMessage());
@@ -120,7 +121,11 @@ public class UpdateObjectsInAThread {
         float convertedAccelValuesX = accelValues[0];
         float convertedAccelValuesY = accelValues[1];
 
-        Circle.setGravity(new PointF(-convertedAccelValuesX, convertedAccelValuesY));
+        PointF gravity = new PointF(-convertedAccelValuesX, convertedAccelValuesY);
+        Circle.setGravity(gravity);
+        
+        PointF gravityForEngine = new PointF(-convertedAccelValuesX, -convertedAccelValuesY);
+        OxygenActivity.getPhysicsEngine().setGravity(gravityForEngine);
         // float[] magnetValues = mShakeDetector.magnetValues;
     }
 

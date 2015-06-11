@@ -37,12 +37,16 @@ public class PhysicsEngine {
 	
 	private void initializeWorld() {
 		clearWorld();
-		world = new World(0, -10F);
+		world = new World(0, 0);
 	}
 	
 	public void stepWorld() {
 		if (world == null) return;
 		world.step(Configuration.getRefreshInterval(), 5, 5, 5);
+	}
+	
+	public void setGravity(PointF gravity) {
+		world.setGravity(gravity.x, gravity.y);
 	}
 	
 	public void createCircle(Circle circle) {
@@ -55,6 +59,7 @@ public class PhysicsEngine {
 		BodyDef circleBodyDef = new BodyDef();
 		circleBodyDef.setType(BodyType.dynamicBody);
 		circleBodyDef.setPosition(centerInWorld.x, centerInWorld.y);
+		circleBodyDef.setAllowSleep(false);
 
 		FixtureDef fixtureDef = new FixtureDef();
 		fixtureDef.setShape(circleShape);
