@@ -1,9 +1,20 @@
+---> In order to run this project in eclipse, following steps are needed:
+
+Step 1: Eclipse Plugins
+CDT (C++ Dev Toolkit)
+ADK (Android Dev Kit)
+Android NDK (Native Dev Kit. Comes bundled with ADK)
+
+Step 2:
 This project requires the following libraries
 Andriod NDK
 LiquidFun
+Swig (which instead requires PCRE)
 
 Download the above libraries and extract at the top level directory of the project.
+Install swig in system and change SWIG_BIN path in jni/Application.mk to point to swig bin path.
 
+Step 3:
 Add following lines for swig lines generation:
 liquidfun-1.1.0/liquidfun/Box2D/swig/java/Dynamics/b2Fixture.swig
     float32 friction;
@@ -11,11 +22,15 @@ liquidfun-1.1.0/liquidfun/Box2D/swig/java/Dynamics/b2Fixture.swig
     float32 density;
     bool isSensor;
 
-
-For run timeout issues (Eclipse):
-Window -> Preferences -> Android -> DDMS -> ADB Connection Timeout (ms)
-
+Step 4:
 If swig_gen linked resource is not present already, do the following:
 Go to Project -> Properties -> Java Build Path -> Source -> Link Source
 Folder Path: PROJECT_LOC/liquidfun-1.1.0/liquidfun/Box2D/swig/gen
 Folder Name: swig_gen
+
+Step 5:
+For run timeout issues (Eclipse):
+Window -> Preferences -> Android -> DDMS -> ADB Connection Timeout (ms)
+
+Step 6: Right click on project -> Run As -> Android Application
+

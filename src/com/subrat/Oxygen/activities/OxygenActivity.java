@@ -40,7 +40,7 @@ public class OxygenActivity extends Activity {
         oxygenView = (OxygenView) findViewById(R.id.view);
         oxygenView.oxygenActivity = this;
         
-        if (Configuration.useLiquidFunPhysics()) {
+        if (Configuration.USE_LIQUIDFUN_PHYSICS) {
         	physicsEngine = new PhysicsEngine();
         }
 
@@ -78,7 +78,7 @@ public class OxygenActivity extends Activity {
         Object.getObjectList().clear();
         context = null;
         
-        if (Configuration.useLiquidFunPhysics()) {
+        if (Configuration.USE_LIQUIDFUN_PHYSICS) {
         	physicsEngine.clearWorld();
         }
 
@@ -125,7 +125,7 @@ public class OxygenActivity extends Activity {
     public static void setCanvasDimensions(int width, int height) { 
     	canvasWidth = width;
     	canvasHeight = height;
-    	worldHeight = Configuration.getDefaultWorldHeight();
+    	worldHeight = Configuration.DEFAULT_WORLD_HEIGHT;
     	int pixelsPerMeter = (int)(canvasHeight / worldHeight);
     	worldWidth = (float)canvasWidth / (float)pixelsPerMeter;
     }

@@ -29,7 +29,7 @@ public class ObjectBuilder {
     }
 
     public static void createOrUpdateBoundaryLines() {
-        float canvasMargin = Configuration.getCanvasMargin();
+        float canvasMargin = Configuration.CANVAS_MARGIN;
         PointF topLeft = new PointF(canvasMargin, canvasMargin);
         PointF topRight = new PointF(OxygenActivity.getWorldWidth() - canvasMargin, canvasMargin);
         PointF bottomLeft = new PointF(canvasMargin, OxygenActivity.getWorldHeight() - canvasMargin);

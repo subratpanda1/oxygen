@@ -11,13 +11,17 @@ import com.subrat.Oxygen.utilities.MathUtils;
 import com.google.fpl.liquidfun.BodyDef;
 import com.google.fpl.liquidfun.BodyType;
 import com.google.fpl.liquidfun.CircleShape;
+import com.google.fpl.liquidfun.ParticleSystem;
+import com.google.fpl.liquidfun.ParticleSystemDef;
 import com.google.fpl.liquidfun.PolygonShape;
 import com.google.fpl.liquidfun.FixtureDef;
 import com.google.fpl.liquidfun.World;
 import com.google.fpl.liquidfun.Body;
 
 public class PhysicsEngine {
-	World world;
+	private World world;
+	private ParticleSystem particleSystem;
+
 	private SparseArray<Body> objectList = new SparseArray<Body>();
 	
 	public PhysicsEngine() { initializeWorld();	}
@@ -42,7 +46,7 @@ public class PhysicsEngine {
 	
 	public void stepWorld() {
 		if (world == null) return;
-		world.step(Configuration.getRefreshInterval(), 5, 5, 5);
+		world.step(Configuration.REFRESH_INTERVAL, 5, 5, 5);
 	}
 	
 	public void setGravity(PointF gravity) {
@@ -64,7 +68,7 @@ public class PhysicsEngine {
 		FixtureDef fixtureDef = new FixtureDef();
 		fixtureDef.setShape(circleShape);
 		fixtureDef.setDensity(1F);
-		fixtureDef.setRestitution(Configuration.getRestitution());
+		fixtureDef.setRestitution(Configuration.RESTITUTION);
 		fixtureDef.setFriction(0F);
 		
 		Body circleBody = world.createBody(circleBodyDef);
@@ -83,7 +87,7 @@ public class PhysicsEngine {
 		
 		PolygonShape lineShape = new PolygonShape();
 		float length = MathUtils.getDistance(line.getStart(), line.getEnd());
-		lineShape.setAsBox(length / 2, Configuration.getLineThickness()/2);
+		lineShape.setAsBox(length / 2, Configuration.LINE_THICKNESS/2);
 		
 		BodyDef lineBodyDef = new BodyDef();
 		lineBodyDef.setType(BodyType.staticBody);
@@ -135,6 +139,15 @@ public class PhysicsEngine {
 		lineBody.setTransform((startPointInWorld.x + endPointInWorld.x) / 2,
 				              (startPointInWorld.y + endPointInWorld.y) / 2,
 				              MathUtils.getRadian(startPointInWorld, endPointInWorld));
+	}
+	
+	public void createParticleSystem() {
+		ParticleSystemDef psDef = new ParticleSystemDef();
+        psDef.setRadius(Configuration.PARTICLE_RADIUS);
+        psDef.setRepulsiveStrength(Configuration.PARTICLE_REPULSIVE_STRENGTH);
+        particleSystem = world.createParticleSystem(psDef);
+        particleSystem.setMaxParticleCount(Configuration.MAX_PARTICLE_COUNT);
+        psDef.delete();
 	}
 
 }

@@ -28,7 +28,7 @@ public abstract class Object {
     public abstract void updatePosition();
 
     public static void updateAllObjects() {
-    	if (Configuration.useLiquidFunPhysics()) {
+    	if (Configuration.USE_LIQUIDFUN_PHYSICS) {
     		OxygenActivity.getPhysicsEngine().stepWorld();
     		for (Object object : Object.getObjectList()) {
     			if (object instanceof Circle) {

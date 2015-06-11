@@ -21,7 +21,7 @@ public class Circle extends Object {
     public float getRadius() { return radius; }
 
     public float getMass() {
-        return (float) (3.14F * Math.pow(radius, 2) * Configuration.getCircleDensity());
+        return (float) (3.14F * Math.pow(radius, 2) * Configuration.CIRCLE_DENSITY);
     }
 
     private PointF velocity; // In mtr per sec
@@ -57,8 +57,8 @@ public class Circle extends Object {
 
     public void initRandomVelocity() {
         velocity = new PointF();
-        velocity.x = MathUtils.getRandom(-Configuration.getMaxVelocity(), Configuration.getMaxVelocity());
-        velocity.y = (float) (Math.sqrt(Math.pow(Configuration.getMaxVelocity(), 2) - Math.pow(velocity.x, 2)) * MathUtils.getRandomSign());
+        velocity.x = MathUtils.getRandom(-Configuration.MAX_VELOCITY, Configuration.MAX_VELOCITY);
+        velocity.y = (float) (Math.sqrt(Math.pow(Configuration.MAX_VELOCITY, 2) - Math.pow(velocity.x, 2)) * MathUtils.getRandomSign());
     }
 
     private boolean isStill() {
@@ -82,7 +82,7 @@ public class Circle extends Object {
             strokePainter.setColor(Color.parseColor(MathUtils.getRandomColor()));
             strokePainter.setAntiAlias(true);
             strokePainter.setStyle(Paint.Style.STROKE);
-            strokePainter.setStrokeWidth(Configuration.getCircleBorder());
+            strokePainter.setStrokeWidth(Configuration.CIRCLE_BORDER);
         }
         return strokePainter;
     }
@@ -95,7 +95,7 @@ public class Circle extends Object {
     }
 
     public static boolean detectCircle(ArrayList<PointF> points) {
-        if (points.size() < Configuration.getCircleMinPixels()) return false;
+        if (points.size() < Configuration.CIRCLE_MIN_PIXELS) return false;
 
         // Check if standard deviation of all points from center is low
         float avgx = 0, avgy = 0;
@@ -115,9 +115,9 @@ public class Circle extends Object {
         }
 
         float meanRadius = MathUtils.getMean(radiusList);
-        if (meanRadius < Configuration.getCircleMinRadius()) return false;
+        if (meanRadius < Configuration.CIRCLE_MIN_RADIUS) return false;
         float standardDeviation = MathUtils.getStandardDeviation(radiusList, meanRadius);
-        if (standardDeviation > Configuration.getCircleDeviationThreshold()) return false;
+        if (standardDeviation > Configuration.CIRCLE_DEVIATION_THRESHOLD) return false;
 
         // Do not create if overlapping with other circles
         Circle circle = Circle.getCircle(points);
@@ -154,7 +154,7 @@ public class Circle extends Object {
         circle.setObjectId(ObjectBuilder.getNextObjectId());
         Object.getObjectList().add(circle);
         
-        if (Configuration.useLiquidFunPhysics()) {
+        if (Configuration.USE_LIQUIDFUN_PHYSICS) {
         	OxygenActivity.getPhysicsEngine().createCircle(circle);
         }
         
@@ -164,13 +164,13 @@ public class Circle extends Object {
     public void updatePosition() {
         // Don't change velocity if acceleration is very low
         // if (MathUtils.getAbsolute(this.getGravity()) > Configuration.getMinGravity()) {
-             PointF velocityChange = MathUtils.scalePoint(getGravity(), Configuration.getRefreshInterval());
+             PointF velocityChange = MathUtils.scalePoint(getGravity(), Configuration.REFRESH_INTERVAL);
              MathUtils.addToPoint(velocity, velocityChange);
         // }
              
         // Don't change position if velocity is very low
         // if (MathUtils.getAbsolute(this.getVelocity()) > Configuration.getMinVelocity()) {
-             PointF positionChange = MathUtils.scalePoint(getVelocity(), Configuration.getRefreshInterval());
+             PointF positionChange = MathUtils.scalePoint(getVelocity(), Configuration.REFRESH_INTERVAL);
              MathUtils.addToPoint(center, positionChange);
         // }
     }
@@ -180,11 +180,11 @@ public class Circle extends Object {
         if (object instanceof Circle) {
             Circle circle = (Circle) object;
             float threshold = MathUtils.getDistance(circle.getCenter(), this.getCenter()) - (circle.radius + this.radius);
-            if (threshold < Configuration.getCollisionThreshold()) return true;
+            if (threshold < Configuration.COLLISION_THRESHOLD) return true;
         } else if (object instanceof Line) {
             Line line = (Line) object;
             float threshold = MathUtils.getDistance(this, line) - this.radius;
-            if (threshold < Configuration.getCollisionThreshold()) {
+            if (threshold < Configuration.COLLISION_THRESHOLD) {
                 return true;
             }
         }
@@ -198,10 +198,10 @@ public class Circle extends Object {
             Circle circle = (Circle) object;
             if (this.isStill() && circle.isStill()) return false;
             float threshold = MathUtils.getDistance(circle.getCenter(), this.getCenter()) - (circle.radius + this.radius);
-            if (threshold < Configuration.getCollisionThreshold()) {
+            if (threshold < Configuration.COLLISION_THRESHOLD) {
                 // Check if circles get closer in next frame
-                PointF thisPositionChange = MathUtils.scalePoint(this.getVelocity(), Configuration.getRefreshInterval());
-                PointF objectPositionChange = MathUtils.scalePoint(circle.getVelocity(), Configuration.getRefreshInterval());
+                PointF thisPositionChange = MathUtils.scalePoint(this.getVelocity(), Configuration.REFRESH_INTERVAL);
+                PointF objectPositionChange = MathUtils.scalePoint(circle.getVelocity(), Configuration.REFRESH_INTERVAL);
                 PointF newThisCenter = MathUtils.addPoint(this.center, thisPositionChange);
                 PointF newObjectCenter = MathUtils.addPoint(circle.center, objectPositionChange);
                 float newThreshold = MathUtils.getDistance(newObjectCenter, newThisCenter) - (circle.radius + this.radius);
@@ -212,7 +212,7 @@ public class Circle extends Object {
         } else if (object instanceof Line) {
             if (this.isStill()) return false;
             Line line = (Line) object;
-            PointF positionChange = MathUtils.scalePoint(this.getVelocity(), Configuration.getRefreshInterval());
+            PointF positionChange = MathUtils.scalePoint(this.getVelocity(), Configuration.REFRESH_INTERVAL);
             PointF newThisCenter = MathUtils.addPoint(this.center, positionChange);
 
             // Detect if circle is within bounding rectangle of the line
@@ -220,7 +220,7 @@ public class Circle extends Object {
             float lineLength = MathUtils.getDistance(line.getStart(), line.getEnd());
             if (transformedCenter.x > 0 && transformedCenter.x < lineLength) {
                 float threshold = Math.abs(transformedCenter.y) - this.radius;
-                if (threshold < Configuration.getCollisionThreshold()) {
+                if (threshold < Configuration.COLLISION_THRESHOLD) {
                     // Check if circles get closer in next frame
                     float newThreshold = MathUtils.getDistance(newThisCenter, line) - this.radius;
                     if (newThreshold < threshold) {
@@ -230,7 +230,7 @@ public class Circle extends Object {
             } else {
                 // Detect if circle is going to hit the corner
                 float threshold = MathUtils.getDistance(this.getCenter(), line.getStart()) - this.radius;
-                if (threshold < Configuration.getCollisionThreshold()) {
+                if (threshold < Configuration.COLLISION_THRESHOLD) {
                     // Check if circles get closer in next frame
                     float newThreshold = MathUtils.getDistance(newThisCenter, line.getStart()) - this.radius;
                     if (newThreshold < threshold) {
@@ -239,7 +239,7 @@ public class Circle extends Object {
                 }
 
                 threshold = MathUtils.getDistance(this.getCenter(), line.getEnd()) - this.radius;
-                if (threshold < Configuration.getCollisionThreshold()) {
+                if (threshold < Configuration.COLLISION_THRESHOLD) {
                     // Check if circles get closer in next frame
                     float newThreshold = MathUtils.getDistance(newThisCenter, line.getEnd()) - this.radius;
                     if (newThreshold < threshold) {
@@ -274,7 +274,7 @@ public class Circle extends Object {
         float m1 = mass.x;
         float m2 = mass.y;
 
-        float e = Configuration.getRestitution();
+        float e = Configuration.RESTITUTION;
 
         float V1 = ( (m1 * v1 + m2 * v2) - m2 * e * (v1 - v2) ) / (m1 + m2);
         float V2 = ( (m1 * v1 + m2 * v2) + m1 * e * (v1 - v2) ) / (m1 + m2);
@@ -354,7 +354,7 @@ public class Circle extends Object {
             float projectedVelocityY = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
 
             // Compute post-collision velocities (Note that velocity along projected Y axis will be inverted)
-            projectedVelocityY = -1F * Configuration.getRestitution() * projectedVelocityY;
+            projectedVelocityY = -1F * Configuration.RESTITUTION * projectedVelocityY;
 
             // Calculate back projected velocities to normal axis
             this.getVelocity().x = projectedVelocityX * cosTheta - projectedVelocityY * sinTheta;
@@ -372,7 +372,7 @@ public class Circle extends Object {
 
             // If circle is going to hit the starting corner
             float threshold = MathUtils.getDistance(this.getCenter(), line.getStart()) - this.radius;
-            if (threshold < Configuration.getCollisionThreshold()) {
+            if (threshold < Configuration.COLLISION_THRESHOLD) {
                 float sinTheta = MathUtils.getSinTheta(this.getCenter(), line.getStart());
                 float cosTheta = MathUtils.getCosTheta(this.getCenter(), line.getStart());
 
@@ -381,7 +381,7 @@ public class Circle extends Object {
                 float projectedVelocityY = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
 
                 // Compute post-collision velocities (Note that velocity along projected X axis will be inverted)
-                projectedVelocityX = -1F * Configuration.getRestitution() * projectedVelocityX;
+                projectedVelocityX = -1F * Configuration.RESTITUTION * projectedVelocityX;
 
                 // Calculate back projected velocities to normal axis
                 this.getVelocity().x = projectedVelocityX * cosTheta - projectedVelocityY * sinTheta;
@@ -399,7 +399,7 @@ public class Circle extends Object {
 
             // If circle is going to hit the ending corner
             threshold = MathUtils.getDistance(this.getCenter(), line.getEnd()) - this.radius;
-            if (threshold < Configuration.getCollisionThreshold()) {
+            if (threshold < Configuration.COLLISION_THRESHOLD) {
                 float sinTheta = MathUtils.getSinTheta(this.getCenter(), line.getEnd());
                 float cosTheta = MathUtils.getCosTheta(this.getCenter(), line.getEnd());
 
@@ -408,7 +408,7 @@ public class Circle extends Object {
                 float projectedVelocityY = this.getVelocity().y * cosTheta - this.getVelocity().x * sinTheta;
 
                 // Compute post-collision velocities (Note that velocity along projected X axis will be inverted)
-                projectedVelocityX = -1F * Configuration.getRestitution() * projectedVelocityX;
+                projectedVelocityX = -1F * Configuration.RESTITUTION * projectedVelocityX;
 
                 // Calculate back projected velocities to normal axis
                 this.getVelocity().x = projectedVelocityX * cosTheta - projectedVelocityY * sinTheta;

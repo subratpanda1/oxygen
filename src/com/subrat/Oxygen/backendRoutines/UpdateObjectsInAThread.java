@@ -99,7 +99,7 @@ public class UpdateObjectsInAThread {
                 updateSensorReading();
                 Object.updateAllObjects();
                 threadHandler.sendMessage(threadHandler.obtainMessage());
-                repeatHandler.postDelayed(repeatRunnable, (int)Configuration.getRefreshInterval() * 1000/*in msec*/);
+                repeatHandler.postDelayed(repeatRunnable, (int)Configuration.REFRESH_INTERVAL * 1000/*in msec*/);
             }
         };
     }

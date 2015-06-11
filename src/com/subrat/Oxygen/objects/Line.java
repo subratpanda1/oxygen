@@ -37,7 +37,7 @@ public class Line extends Object {
             linePainter.setColor(Color.YELLOW);
             linePainter.setAntiAlias(true);
             linePainter.setStyle(Paint.Style.STROKE);
-            linePainter.setStrokeWidth(MathUtils.getPixelFromMeter(Configuration.getLineThickness()));
+            linePainter.setStrokeWidth(MathUtils.getPixelFromMeter(Configuration.LINE_THICKNESS));
         }
 
         return linePainter;
@@ -51,13 +51,13 @@ public class Line extends Object {
     }
 
     public static boolean detectLine(ArrayList<PointF> points) {
-        if (points.size() < Configuration.getLineMinPixels()) return false;
+        if (points.size() < Configuration.LINE_MIN_PIXELS) return false;
 
         PointF start = points.get(0);
         PointF end = points.get(points.size() - 1);
 
         float lineLength = MathUtils.getDistance(start, end);
-        if (lineLength < Configuration.getLineMinLength()) return false;
+        if (lineLength < Configuration.LINE_MIN_LENGTH) return false;
 
         // Check if bounding box is thin enough to be approximated by a line
         Line line = Line.getTemporaryLine(start, end);
@@ -67,7 +67,7 @@ public class Line extends Object {
         }
         
         float meanDistance = MathUtils.getMean(distanceList);
-        if ((lineLength / meanDistance) < Configuration.getLineDeviationThreshold()) return false;
+        if ((lineLength / meanDistance) < Configuration.LINE_DEVIATION_THRESHOLD) return false;
 
         return true;
     }
@@ -77,7 +77,7 @@ public class Line extends Object {
         line.setObjectId(ObjectBuilder.getNextObjectId());
         Object.getObjectList().add(line);
         
-        if (Configuration.useLiquidFunPhysics()) {
+        if (Configuration.USE_LIQUIDFUN_PHYSICS) {
         	OxygenActivity.getPhysicsEngine().createLine(line);
         }
         
@@ -89,7 +89,7 @@ public class Line extends Object {
         line.setObjectId(ObjectBuilder.getNextObjectId());
         Object.getObjectList().add(line);
         
-        if (Configuration.useLiquidFunPhysics()) {
+        if (Configuration.USE_LIQUIDFUN_PHYSICS) {
         	OxygenActivity.getPhysicsEngine().createLine(line);
         }
         
@@ -103,7 +103,7 @@ public class Line extends Object {
     public void editLine(PointF start, PointF end) {
     	setEndPoints(start, end);
         
-    	if (Configuration.useLiquidFunPhysics()) {
+    	if (Configuration.USE_LIQUIDFUN_PHYSICS) {
     		OxygenActivity.getPhysicsEngine().editLine(this);
     	}
     }
