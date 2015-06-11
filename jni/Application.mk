@@ -1,5 +1,5 @@
-APP_ABI:=x86
-APP_PLATFORM:=android-17
+APP_ABI:=all
+APP_PLATFORM:=android-14
 APP_STL:=gnustl_static
 # APP_STL:=stlport_static
 APP_CFLAGS:=-DSWIG=1 -fexceptions -DLIQUIDFUN_EXTERNAL_LANGUAGE_API
