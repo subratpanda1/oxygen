@@ -160,12 +160,16 @@ public class PhysicsEngine {
         psDef.setDampingStrength(Configuration.PARTICLE_DAMPING);
         psDef.setRepulsiveStrength(Configuration.PARTICLE_REPULSIVE_STRENGTH);
         psDef.setDensity(Configuration.PARTICLE_DENSITY);
-        psDef.setStrictContactCheck(true);
+        // psDef.setStrictContactCheck(true);
         
         particleSystem = world.createParticleSystem(psDef);
         particleSystem.setMaxParticleCount(Configuration.MAX_PARTICLE_COUNT);
         psDef.delete();
         
+        // addGroundWater();
+	}
+	
+	public void addGroundWater() {
         for (int x = 1; x < 20; ++x) {
         	for (int y = 1; y < 20; ++y) {
         		ParticleDef particleDef = new ParticleDef();
@@ -176,6 +180,21 @@ public class PhysicsEngine {
         		particleDef.delete();
         	}
         }
+	}
+	
+	public void addWater() {
+		float shift = MathUtils.getRandom(OxygenActivity.getWorldWidth() / 5, (OxygenActivity.getWorldWidth() * 3) / 5);
+		for (int x = 1; x < 5; ++x) {
+			for (int y = 1; y < 5; ++y) {
+        		ParticleDef particleDef = new ParticleDef();
+        		particleDef.setFlags(ParticleFlag.waterParticle);
+        		float borderDistance = 2 * Configuration.CANVAS_MARGIN + 2 * Configuration.LINE_THICKNESS;
+        		particleDef.setPosition(borderDistance + shift + ((float)x)/7,
+        				                OxygenActivity.getWorldHeight() - borderDistance - ((float)y)/7);
+        		particleSystem.createParticle(particleDef);
+        		particleDef.delete();	
+			}
+		}
 	}
 	
 	public void updateParticles(ArrayList<Circle> particleList) {

@@ -6,8 +6,6 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import com.subrat.Oxygen.activities.OxygenActivity;
 import com.subrat.Oxygen.utilities.Configuration;
@@ -25,6 +23,9 @@ public abstract class Object {
 
     private static ArrayList<Object> objectList = new ArrayList<Object>();
     public static ArrayList<Object> getObjectList() { return objectList; }
+
+    private static ArrayList<Circle> particleList = new ArrayList<Circle>();
+    public static ArrayList<Circle> getParticleList() { return particleList; }
     
     private static Paint waterPainter = null;
     
@@ -38,8 +39,6 @@ public abstract class Object {
         return waterPainter;
     }
     
-    private static ArrayList<Circle> particleList = new ArrayList<Circle>();
-    public static ArrayList<Circle> getParticleList() { return particleList; }
     public static void drawParticles(Canvas canvas) {
     	float[] points = new float[2 * particleList.size()];
     	int i = 0;

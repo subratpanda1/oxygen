@@ -26,13 +26,13 @@ public class Configuration {
     
     public final static boolean USE_LIQUIDFUN_PHYSICS = true;
     
-    public static final int VELOCITY_ITERATIONS = 5;
-    public static final int POSITION_ITERATIONS = 5;
-    public static final int PARTICLE_ITERATIONS = 3;
+    public static final int VELOCITY_ITERATIONS = 3;
+    public static final int POSITION_ITERATIONS = 3;
+    public static final int PARTICLE_ITERATIONS = 2;
     
-    public static final int MAX_PARTICLE_COUNT = 2000;
+    public static final int MAX_PARTICLE_COUNT = 15000;
     public static final float PARTICLE_RADIUS = 0.1F;
     public static final float PARTICLE_DAMPING = 0.5F;
-    public static final float PARTICLE_DENSITY = 1.3F;
+    public static final float PARTICLE_DENSITY = 3F;
     public static final float PARTICLE_REPULSIVE_STRENGTH = 0.5F;
 }

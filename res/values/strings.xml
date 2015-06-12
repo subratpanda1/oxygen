@@ -3,4 +3,8 @@
     <string name="app_name">Oxygen</string>
     <string name="MainButtonText">Click Here</string>
     <string name="DisplayMessage">Click Here</string>
+    <string name="AddWater">Sprinkle Water</string>
+    <string name="Draw">Draw</string>
+    <string name="Move">Move</string>
+    <string name="Delete">Delete</string>
 </resources>

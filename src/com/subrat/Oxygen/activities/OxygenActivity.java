@@ -6,6 +6,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.View;
+import android.widget.Button;
 
 import com.subrat.Oxygen.R;
 import com.subrat.Oxygen.backendRoutines.PhysicsEngine;
@@ -32,6 +34,8 @@ public class OxygenActivity extends Activity {
 
     UpdateObjectsInAThread updateObjectsInAThread = null;
     Handler threadHandler;
+    
+    Button.OnClickListener onClickListener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -63,6 +67,20 @@ public class OxygenActivity extends Activity {
             updateObjectsInAThread = new UpdateObjectsInAThread(this, threadHandler);
         }
         
+        onClickListener = new Button.OnClickListener() {
+            public void onClick(View view) {
+            	if (Configuration.USE_LIQUIDFUN_PHYSICS) {
+                	physicsEngine.addWater();
+                }
+            }
+        };
+        
+        Button button = (Button) findViewById(R.id.waterButton);
+        button.setOnClickListener(onClickListener);
+        if (!Configuration.USE_LIQUIDFUN_PHYSICS) {
+        	button.setVisibility(View.GONE);
+        }
+        
         startSimulation();
     }
 
@@ -82,6 +100,7 @@ public class OxygenActivity extends Activity {
     public void onBackPressed() {
         super.onBackPressed();
         Object.getObjectList().clear();
+        Object.getParticleList().clear();
         context = null;
         
         if (Configuration.USE_LIQUIDFUN_PHYSICS) {

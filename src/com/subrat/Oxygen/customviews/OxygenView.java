@@ -7,7 +7,6 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.subrat.Oxygen.activities.OxygenActivity;
-import com.subrat.Oxygen.objects.Circle;
 import com.subrat.Oxygen.objects.ObjectBuilder;
 import com.subrat.Oxygen.objects.Object;
 
