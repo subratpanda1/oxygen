@@ -22,13 +22,14 @@ public class ObjectBuilder {
         } 
         
         else if (Circle.detectCircle(points)) {
-            // return Circle.getCircle(points);
+            return Circle.getCircle(points);
         }
 
         return null;
     }
 
     public static void createOrUpdateBoundaryLines() {
+    	if (OxygenActivity.getContext() == null) return;
         float canvasMargin = Configuration.CANVAS_MARGIN;
         PointF topLeft = new PointF(canvasMargin, canvasMargin);
         PointF topRight = new PointF(OxygenActivity.getWorldWidth() - canvasMargin, canvasMargin);

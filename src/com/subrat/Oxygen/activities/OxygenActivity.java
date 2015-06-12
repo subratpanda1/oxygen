@@ -24,7 +24,7 @@ public class OxygenActivity extends Activity {
 	private static float worldWidth = 0;   // In meter
 	private static float worldHeight = 0F; // In meter
 	
-	private static PhysicsEngine physicsEngine;
+	private static PhysicsEngine physicsEngine = null;
 
     private int alertSecondsCounter = 0;
     Runnable runnable;
@@ -39,9 +39,11 @@ public class OxygenActivity extends Activity {
         setContentView(R.layout.oxygen);
         oxygenView = (OxygenView) findViewById(R.id.view);
         oxygenView.oxygenActivity = this;
-        
-        if (Configuration.USE_LIQUIDFUN_PHYSICS) {
-        	physicsEngine = new PhysicsEngine();
+
+        try {
+        	Thread.sleep(3000);
+        } catch (Exception ex) {
+        	
         }
 
         context = this;
@@ -52,6 +54,10 @@ public class OxygenActivity extends Activity {
                 oxygenView.invalidate();
             }
         };
+
+        if (Configuration.USE_LIQUIDFUN_PHYSICS) {
+        	physicsEngine = new PhysicsEngine();
+        }
 
         if (updateObjectsInAThread == null) {
             updateObjectsInAThread = new UpdateObjectsInAThread(this, threadHandler);
@@ -80,6 +86,7 @@ public class OxygenActivity extends Activity {
         
         if (Configuration.USE_LIQUIDFUN_PHYSICS) {
         	physicsEngine.clearWorld();
+        	physicsEngine = null;
         }
 
         finish();

@@ -19,6 +19,10 @@ public class Circle extends Object {
 
     private float radius; // In mtr
     public float getRadius() { return radius; }
+    
+    private int rotation; // In degree
+    public int getRotation() { return rotation; }
+    public void setRotation(int deg) { rotation = deg; }
 
     public float getMass() {
         return (float) (3.14F * Math.pow(radius, 2) * Configuration.CIRCLE_DENSITY);
@@ -35,13 +39,28 @@ public class Circle extends Object {
     private Paint fillPainter = null;
     private Paint strokePainter = null;
     Bitmap pic;
+    
+    private boolean isParticle = false;
 
     public Circle(PointF center, float radius) {
         this.center = center;
         this.radius = radius;
+        this.rotation = 0;
+        this.isParticle = false;
 
         initVelocity();
         initBitmap();
+    }
+    
+    public Circle(PointF center, float radius, boolean isParticle) {
+        this.center = center;
+        this.radius = radius;
+        this.isParticle = isParticle;
+    	
+        if (isParticle != true) {
+        	initVelocity();
+        	initBitmap();
+    	}
     }
     
     private void initBitmap() {
@@ -86,11 +105,21 @@ public class Circle extends Object {
         }
         return strokePainter;
     }
-
+    
     public boolean draw(Canvas canvas) {
-        int bitmapCornerX = MathUtils.getPixelFromMeter(this.getCenter().x - this.getRadius());
-        int bitmapCornerY = MathUtils.getPixelFromMeter(this.getCenter().y - this.getRadius());
-        canvas.drawBitmap(pic, bitmapCornerX, bitmapCornerY, null);
+    	if (isParticle) {
+    	} else {
+    		int bitmapCornerX = MathUtils.getPixelFromMeter(this.getCenter().x - this.getRadius());
+    		int bitmapCornerY = MathUtils.getPixelFromMeter(this.getCenter().y - this.getRadius());
+    		
+    		Matrix matrix = new Matrix();
+    		// System.out.println("Drawing at angle: " + rotation);
+    		matrix.setRotate(rotation, pic.getWidth()/2, pic.getHeight()/2);
+    		matrix.postTranslate(bitmapCornerX, bitmapCornerY);
+    		
+    		// canvas.drawBitmap(pic, bitmapCornerX, bitmapCornerY, null);
+    		canvas.drawBitmap(pic, matrix, null);
+    	}
         return true;
     }
 
@@ -120,7 +149,7 @@ public class Circle extends Object {
         if (standardDeviation > Configuration.CIRCLE_DEVIATION_THRESHOLD) return false;
 
         // Do not create if overlapping with other circles
-        Circle circle = Circle.getCircle(points);
+        Circle circle = constructCircle(points);
         for (Object object : Object.getObjectList()) {
             if (circle.checkOverlap(object)) {
                 return false;
@@ -129,9 +158,9 @@ public class Circle extends Object {
 
         return true;
     }
-
-    public static Circle getCircle(ArrayList<PointF> points) {
-        float avgx = 0, avgy = 0;
+    
+    private static Circle constructCircle(ArrayList<PointF> points) {
+    	float avgx = 0, avgy = 0;
         for (PointF point : points) {
             avgx += point.x;
             avgy += point.y;
@@ -151,6 +180,11 @@ public class Circle extends Object {
         float radius = MathUtils.getMean(radiusList);
         
         Circle circle = new Circle(center, radius);
+        return circle;
+    }
+
+    public static Circle getCircle(ArrayList<PointF> points) {
+        Circle circle = constructCircle(points);
         circle.setObjectId(ObjectBuilder.getNextObjectId());
         Object.getObjectList().add(circle);
         

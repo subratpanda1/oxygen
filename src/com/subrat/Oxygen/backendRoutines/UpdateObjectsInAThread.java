@@ -125,7 +125,11 @@ public class UpdateObjectsInAThread {
         Circle.setGravity(gravity);
         
         PointF gravityForEngine = new PointF(-convertedAccelValuesX, -convertedAccelValuesY);
-        OxygenActivity.getPhysicsEngine().setGravity(gravityForEngine);
+        if (Configuration.USE_LIQUIDFUN_PHYSICS) {
+        	if (OxygenActivity.getPhysicsEngine() != null) {
+        		OxygenActivity.getPhysicsEngine().setGravity(gravityForEngine);
+        	}
+        }
         // float[] magnetValues = mShakeDetector.magnetValues;
     }
 

@@ -7,7 +7,7 @@ public class Configuration {
     public final static float MAX_VELOCITY = 0.5F; // In mtr per sec
     public final static float MIN_VELOCITY = 0.1F; // In mtr per sec
 
-    public final static float REFRESH_INTERVAL = 0.02F; // In sec
+    public final static float REFRESH_INTERVAL = 0.03F; // In sec
     public final static float COLLISION_THRESHOLD = 0.001F; // In mtr
     public final static float CIRCLE_BORDER = 0.05F; // In mtr
     public final static float LINE_THICKNESS = 0.03F; // In mtr
@@ -26,7 +26,13 @@ public class Configuration {
     
     public final static boolean USE_LIQUIDFUN_PHYSICS = true;
     
-    public static final int MAX_PARTICLE_COUNT = 5000;
-    public static final float PARTICLE_RADIUS = 0.06f;
-    public static final float PARTICLE_REPULSIVE_STRENGTH = 0.5f;
+    public static final int VELOCITY_ITERATIONS = 5;
+    public static final int POSITION_ITERATIONS = 5;
+    public static final int PARTICLE_ITERATIONS = 3;
+    
+    public static final int MAX_PARTICLE_COUNT = 2000;
+    public static final float PARTICLE_RADIUS = 0.1F;
+    public static final float PARTICLE_DAMPING = 0.5F;
+    public static final float PARTICLE_DENSITY = 1.3F;
+    public static final float PARTICLE_REPULSIVE_STRENGTH = 0.5F;
 }

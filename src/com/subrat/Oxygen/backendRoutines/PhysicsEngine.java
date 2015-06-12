@@ -1,5 +1,7 @@
 package com.subrat.Oxygen.backendRoutines;
 
+import java.util.ArrayList;
+
 import android.graphics.PointF;
 import android.util.SparseArray;
 
@@ -11,6 +13,8 @@ import com.subrat.Oxygen.utilities.MathUtils;
 import com.google.fpl.liquidfun.BodyDef;
 import com.google.fpl.liquidfun.BodyType;
 import com.google.fpl.liquidfun.CircleShape;
+import com.google.fpl.liquidfun.ParticleDef;
+import com.google.fpl.liquidfun.ParticleFlag;
 import com.google.fpl.liquidfun.ParticleSystem;
 import com.google.fpl.liquidfun.ParticleSystemDef;
 import com.google.fpl.liquidfun.PolygonShape;
@@ -24,7 +28,10 @@ public class PhysicsEngine {
 
 	private SparseArray<Body> objectList = new SparseArray<Body>();
 	
-	public PhysicsEngine() { initializeWorld();	}
+	public PhysicsEngine() {
+		initializeWorld();
+		createParticleSystem();
+	}
 	
 	public void clearWorld() {
 		if (world != null) {
@@ -46,7 +53,10 @@ public class PhysicsEngine {
 	
 	public void stepWorld() {
 		if (world == null) return;
-		world.step(Configuration.REFRESH_INTERVAL, 5, 5, 5);
+		world.step(Configuration.REFRESH_INTERVAL,
+				   Configuration.VELOCITY_ITERATIONS,
+				   Configuration.POSITION_ITERATIONS,
+				   Configuration.PARTICLE_ITERATIONS);
 	}
 	
 	public void setGravity(PointF gravity) {
@@ -67,9 +77,9 @@ public class PhysicsEngine {
 
 		FixtureDef fixtureDef = new FixtureDef();
 		fixtureDef.setShape(circleShape);
-		fixtureDef.setDensity(1F);
+		fixtureDef.setDensity(2F);
 		fixtureDef.setRestitution(Configuration.RESTITUTION);
-		fixtureDef.setFriction(0F);
+		fixtureDef.setFriction(1F);
 		
 		Body circleBody = world.createBody(circleBodyDef);
 		circleBody.createFixture(fixtureDef);
@@ -114,6 +124,9 @@ public class PhysicsEngine {
 		
 		PointF centerInCanvas = new PointF(circleBody.getPositionX(), OxygenActivity.getWorldHeight() - circleBody.getPositionY());
 		circle.setCenter(centerInCanvas);
+		float rad = circleBody.getAngle();
+		int deg = (int)( (rad * -180F) / MathUtils.getPI() );
+		circle.setRotation(deg);
 	}
 	
 	public void editCircle(Circle circle) {
@@ -144,10 +157,38 @@ public class PhysicsEngine {
 	public void createParticleSystem() {
 		ParticleSystemDef psDef = new ParticleSystemDef();
         psDef.setRadius(Configuration.PARTICLE_RADIUS);
+        psDef.setDampingStrength(Configuration.PARTICLE_DAMPING);
         psDef.setRepulsiveStrength(Configuration.PARTICLE_REPULSIVE_STRENGTH);
+        psDef.setDensity(Configuration.PARTICLE_DENSITY);
+        psDef.setStrictContactCheck(true);
+        
         particleSystem = world.createParticleSystem(psDef);
         particleSystem.setMaxParticleCount(Configuration.MAX_PARTICLE_COUNT);
         psDef.delete();
+        
+        for (int x = 1; x < 20; ++x) {
+        	for (int y = 1; y < 20; ++y) {
+        		ParticleDef particleDef = new ParticleDef();
+        		particleDef.setFlags(ParticleFlag.waterParticle);
+        		particleDef.setPosition(2 * Configuration.CANVAS_MARGIN + 2 * Configuration.LINE_THICKNESS + ((float)x)/7,
+        				                2 * Configuration.CANVAS_MARGIN + 2 * Configuration.LINE_THICKNESS + ((float)y)/7);
+        		particleSystem.createParticle(particleDef);
+        		particleDef.delete();
+        	}
+        }
 	}
-
+	
+	public void updateParticles(ArrayList<Circle> particleList) {
+		if (particleSystem == null) return;
+		for (int i = 0; i < particleSystem.getParticleCount(); ++i) {
+			PointF center = new PointF(particleSystem.getParticlePositionX(i), OxygenActivity.getWorldHeight() - particleSystem.getParticlePositionY(i));
+			if (particleList.size() <= i) {
+				Circle circle = new Circle(center, Configuration.PARTICLE_RADIUS, true);
+				particleList.add(circle);
+			} else {
+				Circle circle = particleList.get(i);
+				circle.setCenter(center);
+			}
+		}
+	}
 }

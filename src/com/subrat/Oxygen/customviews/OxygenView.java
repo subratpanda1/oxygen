@@ -5,7 +5,9 @@ import android.graphics.*;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+
 import com.subrat.Oxygen.activities.OxygenActivity;
+import com.subrat.Oxygen.objects.Circle;
 import com.subrat.Oxygen.objects.ObjectBuilder;
 import com.subrat.Oxygen.objects.Object;
 
@@ -31,6 +33,7 @@ public class OxygenView extends View implements View.OnTouchListener {
         paint.setColor(Color.WHITE);
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(0);
         points = new ArrayList<PointF>();
     }
 
@@ -52,6 +55,14 @@ public class OxygenView extends View implements View.OnTouchListener {
         for (Object object : Object.getObjectList()) {
             object.draw(canvas);
         }
+        
+        /*
+        for (Circle particle : Object.getParticleList()) {
+        	particle.draw(canvas);
+        }
+        */
+        
+        Object.drawParticles(canvas);
     }
 
     @Override
