@@ -16,7 +16,7 @@ public class Configuration {
     public final static float CIRCLE_DENSITY = 1F; // In Kg per mtr per mtr
     public final static float RESTITUTION = 0.8F;
     public final static float LINE_DEVIATION_THRESHOLD = 40F;
-    public final static float CIRCLE_DEVIATION_THRESHOLD = 0.1F;
+    public final static float CIRCLE_DEVIATION_THRESHOLD = 0.4F;
     public final static int   LINE_MIN_PIXELS = 10;
     public final static int   CIRCLE_MIN_PIXELS = 10;
     public final static float LINE_MIN_LENGTH = 0.1F; // In mtr

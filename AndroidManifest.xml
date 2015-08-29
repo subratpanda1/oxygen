@@ -15,7 +15,6 @@
         </activity>
         <activity android:name=".activities.OxygenActivity"
                   android:parentActivityName="com.subrat.Oxygen.activities.MainActivity"
-                  android:screenOrientation="portrait"
                   android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
         </activity>
     </application>
