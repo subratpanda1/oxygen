@@ -2,6 +2,7 @@ bin/
 gen/
 out/
 .idea/
+.settings/
 Oxygen.apk
 Oxygen.iml
 android-ndk-r10e-darwin-x86_64.bin
