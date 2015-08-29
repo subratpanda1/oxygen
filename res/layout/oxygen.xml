@@ -13,31 +13,47 @@
             android:layout_height="@dimen/ButtonLayout" android:layout_gravity="center_horizontal" android:layout_weight="1"
             android:layout_marginLeft="@dimen/ButtonLayoutMargin"
             android:layout_marginRight="@dimen/ButtonLayoutMargin">
+
         <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Draw"
-                android:id="@+id/drawModeRadio" android:checked="true"/>
+            android:id="@+id/drawModeRadio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/Draw"
+            android:textSize="12sp" />
+
         <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Move"
-                android:id="@+id/moveModeRadio"
-                android:layout_alignParentTop="true" android:layout_toRightOf="@+id/drawModeRadio"
-                android:layout_marginLeft="@dimen/ButtonLayoutMargin"/>
+            android:id="@+id/moveModeRadio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="@dimen/ButtonLayoutMargin"
+            android:layout_marginStart="@dimen/ButtonLayoutMargin"
+            android:layout_toRightOf="@+id/drawModeRadio"
+            android:layout_toEndOf="@+id/drawModeRadio"
+            android:text="@string/Move"
+            android:textSize="12sp" />
+
         <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Delete"
-                android:id="@+id/deleteModeRadio"
-                android:layout_alignParentTop="true"
-                android:layout_toRightOf="@+id/moveModeRadio" android:layout_marginLeft="@dimen/ButtonLayoutMargin"/>
+            android:id="@+id/deleteModeRadio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="@dimen/ButtonLayoutMargin"
+            android:layout_marginStart="@dimen/ButtonLayoutMargin"
+            android:layout_toRightOf="@+id/moveModeRadio"
+            android:layout_toEndOf="@+id/moveModeRadio"
+            android:text="@string/Delete"
+            android:textSize="12sp" />
+
         <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Preferences"
-                android:id="@+id/prefButton"
-                android:layout_alignParentTop="true" android:layout_alignParentRight="true"
-                />
+            android:id="@+id/waterButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:text="@string/AddWater" />
+
     </RelativeLayout>
 </LinearLayout>

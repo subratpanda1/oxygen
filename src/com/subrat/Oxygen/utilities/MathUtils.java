@@ -180,7 +180,9 @@ public class MathUtils {
     
 	public static int getPixelFromMeter(float meter) {
     	int pixelsPerMeter = (int)(OxygenActivity.getCanvasHeight() / OxygenActivity.getWorldHeight());
-		return (int)(meter * pixelsPerMeter);
+    	int pixels = (int)(meter * pixelsPerMeter);
+    	if (pixels < 1) pixels = 1;
+		return pixels;
 	}
 	
 	public static float getMeterFromPixel(int pixel) {

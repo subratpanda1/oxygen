@@ -10,3 +10,5 @@ include $(BUILD_SHARED_LIBRARY)
 
 $(call import-add-path,$(LIQUIDFUN_SRC_PATH)/..)
 $(call import-module,Box2D/swig/jni)
+$(info "Hello Android")
+

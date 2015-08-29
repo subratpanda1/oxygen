@@ -99,7 +99,7 @@ public class UpdateObjectsInAThread {
                 updateSensorReading();
                 Object.updateAllObjects();
                 threadHandler.sendMessage(threadHandler.obtainMessage());
-                repeatHandler.postDelayed(repeatRunnable, (int)Configuration.getRefreshInterval() * 1000/*in msec*/);
+                repeatHandler.postDelayed(repeatRunnable, (int)Configuration.REFRESH_INTERVAL * 1000/*in msec*/);
             }
         };
     }
@@ -125,7 +125,11 @@ public class UpdateObjectsInAThread {
         Circle.setGravity(gravity);
         
         PointF gravityForEngine = new PointF(-convertedAccelValuesX, -convertedAccelValuesY);
-        OxygenActivity.getPhysicsEngine().setGravity(gravityForEngine);
+        if (Configuration.USE_LIQUIDFUN_PHYSICS) {
+        	if (OxygenActivity.getPhysicsEngine() != null) {
+        		OxygenActivity.getPhysicsEngine().setGravity(gravityForEngine);
+        	}
+        }
         // float[] magnetValues = mShakeDetector.magnetValues;
     }
 

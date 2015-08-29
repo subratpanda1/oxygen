@@ -6,6 +6,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.View;
+import android.widget.Button;
 
 import com.subrat.Oxygen.R;
 import com.subrat.Oxygen.backendRoutines.PhysicsEngine;
@@ -24,7 +26,7 @@ public class OxygenActivity extends Activity {
 	private static float worldWidth = 0;   // In meter
 	private static float worldHeight = 0F; // In meter
 	
-	private static PhysicsEngine physicsEngine;
+	private static PhysicsEngine physicsEngine = null;
 
     private int alertSecondsCounter = 0;
     Runnable runnable;
@@ -32,6 +34,8 @@ public class OxygenActivity extends Activity {
 
     UpdateObjectsInAThread updateObjectsInAThread = null;
     Handler threadHandler;
+    
+    Button.OnClickListener onClickListener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -39,9 +43,11 @@ public class OxygenActivity extends Activity {
         setContentView(R.layout.oxygen);
         oxygenView = (OxygenView) findViewById(R.id.view);
         oxygenView.oxygenActivity = this;
-        
-        if (Configuration.useLiquidFunPhysics()) {
-        	physicsEngine = new PhysicsEngine();
+
+        try {
+        	Thread.sleep(3000);
+        } catch (Exception ex) {
+        	
         }
 
         context = this;
@@ -53,8 +59,26 @@ public class OxygenActivity extends Activity {
             }
         };
 
+        if (Configuration.USE_LIQUIDFUN_PHYSICS) {
+        	physicsEngine = new PhysicsEngine();
+        }
+
         if (updateObjectsInAThread == null) {
             updateObjectsInAThread = new UpdateObjectsInAThread(this, threadHandler);
+        }
+        
+        onClickListener = new Button.OnClickListener() {
+            public void onClick(View view) {
+            	if (Configuration.USE_LIQUIDFUN_PHYSICS) {
+                	physicsEngine.addWater();
+                }
+            }
+        };
+        
+        Button button = (Button) findViewById(R.id.waterButton);
+        button.setOnClickListener(onClickListener);
+        if (!Configuration.USE_LIQUIDFUN_PHYSICS) {
+        	button.setVisibility(View.GONE);
         }
         
         startSimulation();
@@ -76,10 +100,12 @@ public class OxygenActivity extends Activity {
     public void onBackPressed() {
         super.onBackPressed();
         Object.getObjectList().clear();
+        Object.getParticleList().clear();
         context = null;
         
-        if (Configuration.useLiquidFunPhysics()) {
+        if (Configuration.USE_LIQUIDFUN_PHYSICS) {
         	physicsEngine.clearWorld();
+        	physicsEngine = null;
         }
 
         finish();
@@ -125,7 +151,7 @@ public class OxygenActivity extends Activity {
     public static void setCanvasDimensions(int width, int height) { 
     	canvasWidth = width;
     	canvasHeight = height;
-    	worldHeight = Configuration.getDefaultWorldHeight();
+    	worldHeight = Configuration.DEFAULT_WORLD_HEIGHT;
     	int pixelsPerMeter = (int)(canvasHeight / worldHeight);
     	worldWidth = (float)canvasWidth / (float)pixelsPerMeter;
     }
